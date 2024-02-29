@@ -1,0 +1,24 @@
+# Template file for 'master-pdf-editor'
+pkgname=master-pdf-editor
+version=5.9.82
+revision=1
+archs="x86_64"
+depends="desktop-file-utils"
+short_desc="Multifunctional PDF Editor"
+maintainer="Giuseppe Fierro <gspe@ae-design.ws>"
+license="custom:Proprietary"
+homepage="https://code-industry.net/free-pdf-editor/"
+distfiles="https://code-industry.net/public/master-pdf-editor-${version}-qt5.x86_64.tar.gz"
+checksum=09bae18502748a25f3f21509122fbfc5bd9919bba7b8fb882209824602613555
+nostrip=yes
+repository=nonfree
+restricted=yes
+
+do_install() {
+	vlicense license_en.txt
+	vinstall masterpdfeditor5.desktop 644 usr/share/applications
+	rm {license_en.txt,masterpdfeditor5.desktop}
+
+	vmkdir opt/master-pdf-editor-5
+	vcopy * opt/master-pdf-editor-5
+}

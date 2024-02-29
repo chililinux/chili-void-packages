@@ -1,0 +1,14 @@
+# Template file for 'perltidy'
+pkgname=perltidy
+version=20240202
+revision=1
+build_style=perl-module
+hostmakedepends="perl"
+makedepends="${hostmakedepends}"
+depends="${makedepends}"
+short_desc="Perl script indenter and reformatter"
+maintainer="Leah Neukirchen <leah@vuxu.org>"
+license="GPL-2.0-or-later"
+homepage="https://metacpan.org/release/Perl-Tidy"
+distfiles="${CPAN_SITE}/Perl/Perl-Tidy-${version}.tar.gz"
+checksum=9451adde47c2713652d39b150fb3eeb3ccc702add46913e989125184cd7ec57d

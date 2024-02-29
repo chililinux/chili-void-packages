@@ -1,0 +1,27 @@
+# Template file for 'libwpe'
+pkgname=libwpe
+version=1.15.2
+revision=1
+build_style=meson
+hostmakedepends="pkg-config"
+makedepends="MesaLib-devel libxkbcommon-devel"
+short_desc="General-purpose library for WPE WebKit"
+maintainer="Orphaned <orphan@voidlinux.org>"
+license="BSD-2-Clause"
+homepage="https://wpewebkit.org"
+distfiles="https://wpewebkit.org/releases/libwpe-${version}.tar.xz"
+checksum=6d769f64cee0fb1b5069c3b250b0f91e5cd90564cd2efdf633442bab96e5dbe8
+
+post_install() {
+	vlicense COPYING
+}
+
+libwpe-devel_package() {
+	depends="${sourcepkg}>=${version}_${revision} libxkbcommon-devel"
+	short_desc+=" - development files"
+	pkg_install() {
+		vmove usr/include
+		vmove usr/lib/pkgconfig
+		vmove "usr/lib/*.so"
+	}
+}

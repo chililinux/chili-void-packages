@@ -1,0 +1,102 @@
+# Template file for 'rust-bootstrap'
+pkgname=rust-bootstrap
+version=1.75.0
+revision=1
+short_desc="Rust programming language bootstrap toolchain"
+maintainer="Orphaned <orphan@voidlinux.org>"
+license="MIT, Apache-2.0"
+homepage="https://www.rust-lang.org/"
+conflicts="rust>=0"
+lib32disabled=yes
+nostrip=yes
+repository=bootstrap
+
+if [ "$XBPS_TARGET_LIBC" = "musl" ]; then
+	depends="libexecinfo-devel"
+fi
+
+_bootstrap_url="https://static.rust-lang.org/dist"
+
+case "$XBPS_TARGET_MACHINE" in
+	x86_64*|i686) ;;
+	# See srcpkgs/rust-bootstrap/files/generating-distfiles.md for details
+	*) _bootstrap_url="https://repo-default.voidlinux.org/distfiles";;
+esac
+
+# hardcode platform triplets
+# because this info isn't avaialble here without hacky workarounds
+case "$XBPS_TARGET_MACHINE" in
+	i686)
+		distfiles="
+		 ${_bootstrap_url}/rustc-${version}-i686-unknown-linux-gnu.tar.xz
+		 ${_bootstrap_url}/rust-std-${version}-i686-unknown-linux-gnu.tar.xz"
+		checksum="
+		 a39aed533c63b4da6c0d9f30e76d7290ed5b3be2e66bde43d02764d7b50d382f
+		 42c0aba08ddcad191c84adcb5b6479b4599b9e4656e4e2b6d3ed5b46fa4a04fb"
+		;;
+	x86_64)
+		distfiles="
+		 ${_bootstrap_url}/rustc-${version}-x86_64-unknown-linux-gnu.tar.xz
+		 ${_bootstrap_url}/rust-std-${version}-x86_64-unknown-linux-gnu.tar.xz"
+		checksum="
+		 2824ba4045acdddfa436da4f0bb72807b64a089aa2e7c9a66ca1a3a571114ce7
+		 136b132199f7bbda2aa0bbff6d1e6ae7d5fca2994a2f2a432a5e99de224b6314"
+		;;
+	x86_64-musl)
+		distfiles="
+		 ${_bootstrap_url}/rustc-${version}-x86_64-unknown-linux-musl.tar.xz
+		 ${_bootstrap_url}/rust-std-${version}-x86_64-unknown-linux-musl.tar.xz"
+		checksum="
+		 692c9e78bca24010f4eb8d8a02febd8f55463ef8aa49975a780c4124f10abe5e
+		 3728f2d2266b5c87fe2a7ae9c46fc43d06f8c855d7d0f141de6bcd24b43ae919"
+		;;
+	# placeholders for user-supplied distfiles
+	ppc64le)
+		distfiles="
+		 ${_bootstrap_url}/rustc-${version}-powerpc64le-unknown-linux-gnu.tar.xz
+		 ${_bootstrap_url}/rust-std-${version}-powerpc64le-unknown-linux-gnu.tar.xz"
+		checksum="
+		 badbadbadbadbadbadbadbadbadbadbadbadbadbadbadbadbadbadbadbadbadb
+		 badbadbadbadbadbadbadbadbadbadbadbadbadbadbadbadbadbadbadbadbadb"
+		;;
+	ppc64le-musl)
+		distfiles="
+		 ${_bootstrap_url}/rustc-${version}-powerpc64le-unknown-linux-musl.tar.xz
+		 ${_bootstrap_url}/rust-std-${version}-powerpc64le-unknown-linux-musl.tar.xz"
+		checksum="
+		 badbadbadbadbadbadbadbadbadbadbadbadbadbadbadbadbadbadbadbadbadb
+		 badbadbadbadbadbadbadbadbadbadbadbadbadbadbadbadbadbadbadbadbadb"
+		;;
+	ppc64)
+		distfiles="
+		 ${_bootstrap_url}/rustc-${version}-powerpc64-unknown-linux-gnu.tar.xz
+		 ${_bootstrap_url}/rust-std-${version}-powerpc64-unknown-linux-gnu.tar.xz"
+		checksum="
+		 badbadbadbadbadbadbadbadbadbadbadbadbadbadbadbadbadbadbadbadbadb
+		 badbadbadbadbadbadbadbadbadbadbadbadbadbadbadbadbadbadbadbadbadb"
+		;;
+	ppc)
+		distfiles="
+		 ${_bootstrap_url}/rustc-${version}-powerpc-unknown-linux-gnu.tar.xz
+		 ${_bootstrap_url}/rust-std-${version}-powerpc-unknown-linux-gnu.tar.xz"
+		checksum="
+		 badbadbadbadbadbadbadbadbadbadbadbadbadbadbadbadbadbadbadbadbadb
+		 badbadbadbadbadbadbadbadbadbadbadbadbadbadbadbadbadbadbadbadbadb"
+		;;
+	*) broken="rust bootstrap binaries unavailable for ${XBPS_TARGET_MACHINE}";;
+esac
+
+do_install() {
+	for d in *; do
+		cd $d
+		./install.sh --prefix=/usr --destdir="${DESTDIR}"
+		cd ..
+	done
+
+	vlicense rustc-${version}-${RUST_TARGET}/COPYRIGHT
+	vlicense rustc-${version}-${RUST_TARGET}/LICENSE-APACHE
+	vlicense rustc-${version}-${RUST_TARGET}/LICENSE-MIT
+
+	rm -rf ${DESTDIR}/usr/share/doc/rust
+	rm -f ${DESTDIR}/usr/lib/rustlib/${RUST_TARGET}/bin/rust-ll*
+}

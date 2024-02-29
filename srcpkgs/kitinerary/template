@@ -1,0 +1,34 @@
+# Template file for 'kitinerary'
+pkgname=kitinerary
+version=23.08.4
+revision=1
+build_style=cmake
+hostmakedepends="extra-cmake-modules gettext kcoreaddons pkg-config
+ qt5-host-tools qt5-qmake qt5-tools-devel"
+makedepends="kcalendarcore-devel kcontacts-devel kdeclarative-devel kmime-devel
+ kpkpass-devel libphonenumber-devel poppler-devel protobuf-devel qt5-devel
+ zxing-cpp-devel"
+short_desc="Data model and extraction system for travel reservation information"
+maintainer="Louis Dupré Bertoni <contact@louisdb.xyz>"
+license="LGPL-2.1-or-later"
+homepage="https://kontact.kde.org"
+changelog="https://kde.org/announcements/changelogs/gear/${version}/#kitinerary"
+distfiles="${KDE_SITE}/release-service/${version}/src/${pkgname}-${version}.tar.xz"
+checksum=e1340a5c758ffc6b02b5939eaf4ed2fe9cdaeb7e6b3f54486c1ec5e3684d1824
+
+do_check() {
+	cd build
+
+	# extractortest is broken
+	ctest -E extractortest
+}
+
+kitinerary-devel_package() {
+	depends="${sourcepkg}>=${version}_${revision}"
+	short_desc+=" - development files"
+	pkg_install() {
+		vmove usr/include
+		vmove usr/lib/cmake
+		vmove "usr/lib/*.so"
+	}
+}

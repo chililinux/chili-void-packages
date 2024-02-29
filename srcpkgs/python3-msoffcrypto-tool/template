@@ -1,0 +1,27 @@
+# Template file for 'python3-msoffcrypto-tool'
+pkgname=python3-msoffcrypto-tool
+version=5.3.1
+revision=1
+build_style=python3-pep517
+hostmakedepends="python3-poetry-core"
+depends="python3-setuptools python3-olefile python3-cryptography"
+checkdepends="python3-pytest $depends"
+short_desc="Python3 library for decrypting MS Office files"
+maintainer="Andrew Benson <abenson+void@gmail.com>"
+license="MIT"
+homepage="https://github.com/nolze/msoffcrypto-tool"
+distfiles="${homepage}/archive/v${version}.tar.gz"
+checksum=f2e52dea8f486ee46141a21e3a5d458367aebbf95ca63d121e2db4f06b32feb8
+make_check=extended
+
+post_install() {
+	vlicense LICENSE.txt
+}
+
+msoffcrypto-tool_package() {
+	short_desc="${short_desc/library/tool}"
+	depends="${sourcepkg}>=${version}_${revision}"
+	pkg_install() {
+		vmove usr/bin
+	}
+}

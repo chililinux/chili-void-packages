@@ -1,0 +1,16 @@
+# Template file for 'croc'
+pkgname=croc
+version=9.6.6
+revision=1
+build_style=go
+go_import_path=github.com/schollz/croc/v${version%%.*}
+short_desc="Easily and securely send things from one computer to another"
+maintainer="Benjamín Albiñana <benalb@gmail.com>"
+license="MIT"
+homepage="https://github.com/schollz/croc"
+distfiles="https://github.com/schollz/croc/archive/v${version}.tar.gz"
+checksum=9dd954e0068df2be416c71161665bfc283f150d30ba0bf96cee723701e93616f
+
+post_install() {
+	vlicense LICENSE
+}

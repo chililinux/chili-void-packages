@@ -1,0 +1,174 @@
+# Template file for 'thunderbird-i18n'
+pkgname=thunderbird-i18n
+version=115.7.0
+revision=1
+build_style=meta
+short_desc="Thunderbird language packs"
+maintainer="Enno Boland <gottox@voidlinux.org>"
+license="MPL-2.0"
+homepage="https://www.thunderbird.net/"
+
+create_wrksrc=yes
+
+do_extract() {
+	:
+}
+
+_languages=(
+	'af     "Afrikaans"'
+	'ar     "Arabic"'
+	'ast    "Asturian"'
+	'be     "Belarusian"'
+	'bg     "Bulgarian"'
+	'br     "Breton"'
+	'ca     "Catalan"'
+	'cak    "Kaqchikel"'
+	'cs     "Czech"'
+	'cy     "Welsh"'
+	'da     "Danish"'
+	'de     "German"'
+	'dsb    "Lower Sorbian"'
+	'el     "Greek"'
+	'en-CA  "English (Canadian)"'
+	'en-GB  "English (British)"'
+	'en-US  "English (US)"'
+	'es-AR  "Spanish (Argentina)"'
+	'es-ES  "Spanish (Spain)"'
+	'es-MX  "Spanish (Mexico)"'
+	'et     "Estonian"'
+	'eu     "Basque"'
+	'fi     "Finnish"'
+	'fr     "French"'
+	'fy-NL  "Frisian"'
+	'ga-IE  "Irish"'
+	'gd     "Gaelic (Scotland)"'
+	'gl     "Galician"'
+	'he     "Hebrew"'
+	'hr     "Croatian"'
+	'hsb    "Upper Sorbian"'
+	'hu     "Hungarian"'
+	'hy-AM  "Armenian"'
+	'id     "Indonesian"'
+	'is     "Icelandic"'
+	'it     "Italian"'
+	'ja     "Japanese"'
+	'ka     "Georgian"'
+	'kab    "Kabyle"'
+	'kk     "Kazakh"'
+	'ko     "Korean"'
+	'lt     "Lithuanian"'
+	'lv     "Latvian"'
+	'ms     "Malay"'
+	'nb-NO  "Norwegian (Bokmål)"'
+	'nl     "Dutch"'
+	'nn-NO  "Norwegian (Nynorsk)"'
+	'pa-IN  "Punjabi (India)"'
+	'pl     "Polish"'
+	'pt-BR  "Portuguese (Brazilian)"'
+	'pt-PT  "Portuguese (Portugal)"'
+	'rm     "Romansh"'
+	'ro     "Romanian"'
+	'ru     "Russian"'
+	'sk     "Slovak"'
+	'sl     "Slovenian"'
+	'sq     "Albanian"'
+	'sr     "Serbian"'
+	'sv-SE  "Swedish"'
+	'th     "Thai"'
+	'tr     "Turkish"'
+	'uk     "Ukrainian"'
+	'uz     "Uzbek"'
+	'vi     "Vietnamese"'
+	'zh-CN  "Chinese (Simplified)"'
+	'zh-TW  "Chinese (Traditional)"'
+)
+
+depends="thunderbird>=${version}"
+
+for _lang in "${_languages[@]}"; do
+	_locale=${_lang%% *}
+	_pkgname=thunderbird-i18n-${_locale}
+
+	depends+=" ${_pkgname}>=${version}"
+	distfiles+=" ${MOZILLA_SITE}/thunderbird/releases/${version}/linux-x86_64/xpi/${_locale}.xpi>${_locale}-${version}.xpi"
+
+	eval "${_pkgname}_package() {
+		_pkgtmpl $_lang
+	}"
+done
+
+_pkgtmpl() {
+	_lang="$1"
+	depends="thunderbird>=${version}"
+	short_desc="Thunderbird $2 language pack"
+	pkg_install() {
+		vinstall ${XBPS_SRCDISTDIR}/${sourcepkg}-${version}/${_lang}-${version}.xpi 644 \
+			usr/lib/thunderbird/extensions langpack-${_lang}@thunderbird.mozilla.org.xpi
+	}
+}
+checksum="5c707c8886a739dfc501cbb1d55a8826795a9866fd2f25689f9e0236a60ea749
+ 7177a20cdc8dcfadc7805d36bc4788fb6c686c656a25dcfc9be482c9f0fc0243
+ 3014d5c93c6d1135b247046fee58198955a9e6871ab6a6377d7d14aa2c968d7d
+ f5a8eb503098348ddab1f8b5fd2e31c62bec0fddf132f1c714b2f1c59ce5d0eb
+ 1d2fbf2c2c80c3304f417f635782266e7e4cc173fbbd89f0a7790d0f2256265d
+ ec9f88a066b829a0b6bf3aa23cafba79aad186d789423aa0728d483079af5c26
+ f2cecf6487e275cdc872dfecc06ad527fce6c5de98146d0ce4335ff8d2d0a650
+ bbef7f451d2f4ab0bd09c8b7287b656e1df48a99e8d95a358c64f82bc2d75ece
+ 5d765eabec0b50b096dc61723d6644dfd74c917bd0f9543c39cceabf3a911598
+ 91c21a18447fe4b357a2597914c26d4c0ff002c2fe9c164685075d09651d6ebb
+ 4d4d4c2730425da08c82bfc6daf7255983d6b8ec5a106bdef45af11b1c59f0cf
+ ffce410253b28040163f01084da44a9186ad45902fee8bcf72639a9dff8bfd29
+ c391848fc702d7305c280a670afba0c6ae974ef23eb3c68a35ead430ec9514fe
+ 8a1d79aaead6e480dfcb138c6cf81fac3fc06c4f54d67e738005de8a44d5f5a2
+ a4a63d5a4e50cd667eb2bc8124e24bc5e52b3d02c7751eb3c7d095ae64ebe635
+ 650fcc97b2650e7972b0d0184265668f96f1e58e9d570f825cbc97f12302f49e
+ 7a9e416feeb60b3538d329c75409af6ca7da2168830cdf8deb11d08b1150d264
+ 539bb515b18b87bafc509204702f68345746c03242a44aa770b3626a45b359be
+ 8a322ffedb336fa935cbf32f642383a9687ba8e030d62e41c621def22c7cd739
+ 3a454d82c5f5c67eecae227fdcfb3b01ef57cccac2fa0426cfe8eb6cfe920bf8
+ 9ea382266e6d465e8a39c09833b82df62a7aeaeffc3556c4867977c61db267fb
+ 71c5c29d96dd7fa38dcbf7a9af37d307357220155044392c2d11e25bdf5e8a5f
+ cb281b897d012dda7c6ddd08564fbfcc3d521cdeab92044f78d739d96bd5316f
+ 04a9d20b0ba53f1f9775c98a67f49860b79f04fcd28d6fd8b1fc86b7019d35cc
+ 2764106c07d75b997cbf22823e933b70a544999c1fc4f77dd5239a5118baee31
+ 499b4e231894322c1414e989ea6cf07fe1781fc42f40034e70c5870e6c70ef77
+ 2ce39c25fbde0d3c863665c704c654ae6388dfba90c45ad4b5ad6bb0fab6ddb3
+ 2b3d3051984dfa43c40141d767f2b3b5da51acd703ce35b29d6b0b7bd64fd46e
+ 4ed15b6185de92ec294d7494c0b62fb01cf6f80ede14c7c64c21711cdc7294f0
+ f5706f1ba33d3f6d76d00e2f3135f344c309f7978001772706cd782a46d91c2e
+ 686ee0f747197a30bf6c172754ed22da1c1f03d4df79035b475846a8756f22a8
+ ee1b43df1235c377f60d340f019e0b8b7fe8e5ff2310917993c0180272fa33f5
+ cac454302fda216e951eceb2af0e7acb73aa829d047d972e3dfd453fac6786dd
+ 2618f066062610c49d58b31b168de95218b5b89026e68a58b975c2854728e262
+ 1799ad7f9d44e90ef52f2834872f75bce87ed89fcd049d61da52fd270289da94
+ b6745bef0d8a30fba5561bec6cad178e4cc9ec8beca65ce80a1625c60538d952
+ 54e5bb4be1e07b9b5d77553b8f73c06779dcb31051e4fd5f46a95ee9de2d79c2
+ d0480bcf53f9d84fb3b909cd35e4a24eb16ce3c7ede3a748079b8dfa596af78d
+ 547a2e703e228606931b7bb8c398e3c072ea6402f91f71b09fc3ea5a84d9e353
+ fe46f1462080dc258872e03abcfb7244c6536a2d91f67f4c45d703995f693648
+ e0795a0ac36c6db88118f96c8d9f8b17f2b03c7c54892159ced5cee6b6a61925
+ 6824ba2987e9a8f8c17ef0b6a78b0687f53d89384e9bf9487a4f307854d50beb
+ f9ddbe57164aef156596d6f93dc611bea1b21e4abb26098a2a482bd30bf83ec9
+ 6a7f668cdacc708401470026f944a1426055e570fce7ddde6db12529cdb1416c
+ 6d86b91266d38f58e401a54cac34dc18ab19d56b0128ec881debd06a4b9ec1de
+ bfca5978d6eb5df0e3208dc2698118c746c12d4771997b9e812619662ee94aab
+ 141ad68c644fc8c2445edef22bfd7d91bb74c00f415e410ec9a22b7fa1e07a83
+ 343ab9355b8b55dd9a8c946c3c122217c107524b2db45ac90d1760c19071fe0c
+ 7aa7524ccf8d7005b83e17c794719bd4ee4a662c08ee2a7083b0d265818c5707
+ fa9ae0aba428c73ef63934b9817d448dec85308c2694e0b9e8636a666b59671a
+ da55f211e794f84260af7235a295e2736ab0c7f9e29b53db3f69b81281cd6e97
+ 137294a8de383722ca29912271bfa730cb3f820821103a8a88a08106a049818c
+ 7650d8e6fea21196c237c8e62e152602128f1ccc7d07cff2c303964822733745
+ 2e81b51f7ffb9581af5e7c043fc2e61f608fcfd03eaf538566689541a06fd69a
+ ff2089ecd851961582a854b1096a2b38e45cd94ba78a53582342001068bd3bf4
+ 8b3c7e18e7c6b861244abfd27c4986caa9baaea5443c75f5a093858eae6c70fa
+ 2fb47db5e0825678716e7b4503efb87778b9b23d380c5c488f896432e470483e
+ ab958babbfac424a96f0c8e2edc57058826c3052824585aac23880928a8e27eb
+ b22ce4c81bce0d168ff7126685e63193428bfc9ef978c22a95e72fcc86a8dfbf
+ 435af6de2612d1082a4ef9807e93a78c19a1a85e4bb8bb6369b35a3598d910ec
+ 016acdac1f4eda0bc3e63a75c4ceb5d8474022ed32a8037e80e1124e5c06aa7d
+ 3d376598ff7dc9891b3aa4c4ffcac5181cbe8e2acf074707c17b1c21a6ba4499
+ 6bc4cf0bb113974cb159043dd8bb7cbbe489366e614946ed5f912398bed4b350
+ 262f68b4df3dc1ec7fdb9163ff716d09ce05333393488f6845f753fc217868e0
+ c1bf9eb358ac88e7aaa3ecdf4f44ced8cd91860d86a956a7817abf3a0952276b
+ b3259a32884b2d4eb2244f10e3a03e2d8f0b0d73150658b49e061fd7e65f70d5"

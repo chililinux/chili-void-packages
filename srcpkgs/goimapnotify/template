@@ -1,0 +1,13 @@
+# Template file for 'goimapnotify'
+pkgname=goimapnotify
+version=2.3.11
+revision=1
+build_style=go
+go_import_path="gitlab.com/shackra/goimapnotify"
+short_desc="Execute scripts on IMAP idle notifications (Go version)"
+maintainer="Andrew J. Hesford <ajh@sideband.org>"
+license="GPL-3.0-only"
+homepage="https://gitlab.com/shackra/goimapnotify"
+changelog="https://gitlab.com/shackra/goimapnotify/blob/master/CHANGELOG.rst"
+distfiles="https://${go_import_path}/-/archive/${version}/${pkgname}-${version}.tar.gz"
+checksum=4dd9b6f49b54786d50602017f866c37fbe89f19b6ba234798a86eb70ee18eaf6

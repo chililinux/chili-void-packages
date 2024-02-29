@@ -1,0 +1,39 @@
+# Template file for 'kdepim-addons'
+pkgname=kdepim-addons
+version=23.08.4
+revision=1
+build_style=cmake
+hostmakedepends="extra-cmake-modules python3 kdoctools kcoreaddons
+ kconfig kpackage gettext qt5-qmake qt5-host-tools"
+makedepends="akonadi-import-wizard-devel discount-devel incidenceeditor-devel
+ kontactinterface-devel kitinerary-devel ktnef-devel libksieve-devel mailcommon-devel
+ mailimporter-devel messagelib-devel poppler-qt5-devel qt5-devel kpkpass-devel
+ kaddressbook-devel"
+checkdepends=dbus
+short_desc="Addons for KDE PIM applications"
+maintainer="Louis Dupré Bertoni <contact@louis.xyz>"
+license="GPL-2.0-or-later, GPL-3.0-or-later, LGPL-2.1-or-later, AGPL-3.0-or-later, BSD-3-Clause, BSD-2-Clause"
+homepage="https://invent.kde.org/pim/kdepim-addons"
+changelog="https://kde.org/announcements/changelogs/gear/${version}/#kdepim-addons"
+distfiles="${KDE_SITE}/release-service/${version}/src/${pkgname}-${version}.tar.xz"
+checksum=3bef596058a18f1c73456e730095a21ab4550e37bd2f4030e6cfd8fb4efaabe3
+
+do_check() {
+	cd build
+	# failing tests are disabled
+	exclude=".*sqlite.*|addressbookwidget|csvwidget|fancyheaderstyleplugin|folderconfiguresettingswidget|
+grammalecteconfigwidget|grammalecteresultwidget|grantleeheaderstyleplugin|languagetoolconfigwidget|mailmergedialogt|
+mailmergedialog|mailmergejob|mailmergewidget|markdownpreview.*|mergecontacts|
+messageviewer-dkimauthenticationverifiedserverdialog|messageviewerplugins-.*|kdepim-addons-todoedit|
+kdepim-addons-eventedit|fancyheaderstyleplugin|messageviewerplugins-render|grantleeheaderstyleplugin|
+akonadi-sqlite-render-akonadi|messageviewer-dkimauthenticationverifiedserverdialog|
+akonadi-sqlite-mailsenderjob|akonadi-sqlite-gravatarupdatewidget"
+
+	dbus-run-session ctest -E "($(echo ${exclude} | tr -d ' '))test"
+}
+
+post_install() {
+	for license in LICENSES/*; do
+		vlicense $license
+	done
+}

@@ -1,0 +1,13 @@
+# Template file for 'forkstat'
+pkgname=forkstat
+version=0.03.01
+revision=1
+build_style=gnu-makefile
+make_use_env=yes
+short_desc="Program that logs process fork(), exec() and exit() activity"
+maintainer="Wilson Birney <wpb@360scada.com>"
+license="GPL-2.0-or-later"
+homepage="https://github.com/ColinIanKing/forkstat"
+changelog="https://github.com/ColinIanKing/forkstat/raw/master/debian/changelog"
+distfiles="${DEBIAN_SITE}/main/f/forkstat/forkstat_${version}.orig.tar.xz"
+checksum=26c323c2a2da18bdc4a9ed80454105958434b35a199cd40b464ec66c94e95743

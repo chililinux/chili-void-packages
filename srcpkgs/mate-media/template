@@ -1,0 +1,16 @@
+# Template file for 'mate-media'
+pkgname=mate-media
+version=1.26.2
+revision=1
+build_style=gnu-configure
+configure_args="--disable-static"
+hostmakedepends="pkg-config intltool glib-devel"
+makedepends="libcanberra-devel mate-desktop-devel libmatemixer-devel libmate-panel-devel"
+depends="sound-theme-freedesktop"
+short_desc="MATE Media Tools"
+maintainer="skmpz <dem.procopiou@gmail.com>"
+license="GPL-2.0-or-later"
+homepage="https://mate-desktop.org"
+changelog="https://raw.githubusercontent.com/mate-desktop/mate-media/master/NEWS"
+distfiles="https://pub.mate-desktop.org/releases/${version%.*}/mate-media-${version}.tar.xz"
+checksum=af46639574cc388513089ca10bb141ffc3e6d1ac33e730e4208db5759642850f

@@ -1,0 +1,20 @@
+# Template file for 'sequoia-sop'
+pkgname=sequoia-sop
+version=0.31.0
+revision=1
+build_style=cargo
+configure_args="--bin sqop --features cli"
+hostmakedepends="pkg-config llvm clang"
+makedepends="nettle-devel"
+short_desc="Implementation of the Stateless OpenPGP CLI using Sequoia"
+maintainer="Jan Christian Grünhage <jan.christian@gruenhage.xyz>"
+license="GPL-2.0-or-later"
+homepage="https://gitlab.com/sequoia-pgp/sequoia-sop/"
+distfiles="https://gitlab.com/sequoia-pgp/sequoia-sop/-/archive/v${version}/sequoia-sop-v${version}.tar.gz"
+checksum=fd0b63f6d1ea78ecd539565b4c6aa941dd611da1f9077f9d0c567a87d2c3d978
+
+post_install() {
+	for page in man-sqop/*; do
+		vman ${page}
+	done
+}

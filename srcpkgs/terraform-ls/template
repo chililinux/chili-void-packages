@@ -1,0 +1,16 @@
+# Template file for 'terraform-ls'
+pkgname=terraform-ls
+version=0.32.7
+revision=1
+build_style=go
+go_import_path="github.com/hashicorp/terraform-ls"
+short_desc="Terraform Language Server"
+maintainer="Emil Tomczyk <emru@emru.xyz>"
+license="MPL-2.0"
+homepage="https://github.com/hashicorp/terraform-ls"
+distfiles="https://github.com/hashicorp/terraform-ls/archive/v${version}.tar.gz"
+checksum=8e9297c96999efd44c4cbb2a2ff3d7fb245743a1b230af0958ecb5fe06a5d626
+
+post_install() {
+	vlicense LICENSE
+}

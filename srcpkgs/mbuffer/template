@@ -1,0 +1,15 @@
+# Template file for 'mbuffer'
+pkgname=mbuffer
+version=20230301
+revision=1
+build_style=gnu-configure
+hostmakedepends="which"
+makedepends="openssl-devel"
+checkdepends="tar"
+short_desc="Buffer data streams with many additional functions"
+maintainer="Orphaned <orphan@voidlinux.org>"
+license="GPL-3.0-or-later"
+homepage="https://www.maier-komor.de/mbuffer.html"
+distfiles="https://www.maier-komor.de/software/mbuffer/mbuffer-${version}.tgz"
+checksum=53f76209dec00fab283dc0bc5322b0e6346b09da2edbb6435a2d4a8f48252d01
+conf_files="/etc/mbuffer.rc"

@@ -1,0 +1,17 @@
+# Template file for 'unflac'
+pkgname=unflac
+version=1.2
+revision=1
+build_style=go
+go_import_path="git.sr.ht/~ft/unflac"
+depends="ffmpeg"
+short_desc="Command line tool for audio image + cue sheet splitting"
+maintainer="Jason Elswick <jason@jasondavid.tv>"
+license="MIT"
+homepage="https://git.sr.ht/~ft/unflac"
+distfiles="https://git.sr.ht/~ft/${pkgname}/archive/${version}.tar.gz"
+checksum=070d404cd088de024d425bbbf224b302bc02db903a8b3526f20e423019cac796
+
+post_install() {
+	vlicense LICENSE
+}

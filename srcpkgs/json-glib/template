@@ -1,0 +1,38 @@
+# Template file for 'json-glib'
+pkgname=json-glib
+version=1.8.0
+revision=1
+build_style=meson
+build_helper="gir"
+configure_args="$(vopt_feature gir introspection)"
+hostmakedepends="pkg-config glib-devel gettext"
+makedepends="libglib-devel"
+short_desc="JSON parser for GLib-based libraries and applications"
+maintainer="skmpz <dem.procopiou@gmail.com>"
+license="LGPL-2.1-or-later"
+homepage="https://live.gnome.org/JsonGlib"
+changelog="https://gitlab.gnome.org/GNOME/json-glib/-/raw/master/NEWS"
+distfiles="${GNOME_SITE}/json-glib/${version%.*}/json-glib-${version}.tar.xz"
+checksum=97ef5eb92ca811039ad50a65f06633f1aae64792789307be7170795d8b319454
+
+# Package build options
+build_options="gir"
+build_options_default="gir"
+
+post_install() {
+	rm -r ${DESTDIR}/usr/share/installed-tests
+	rm -r ${DESTDIR}/usr/libexec/installed-tests
+}
+
+json-glib-devel_package() {
+	depends="libglib-devel ${sourcepkg}>=${version}_${revision}"
+	short_desc+=" - development files"
+	pkg_install() {
+		vmove usr/include
+		if [ "$build_option_gir" ]; then
+			vmove usr/share/gir-1.0
+		fi
+		vmove usr/lib/pkgconfig
+		vmove "usr/lib/*.so"
+	}
+}

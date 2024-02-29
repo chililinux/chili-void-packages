@@ -1,0 +1,21 @@
+# Template file for 'zathura-pdf-poppler'
+pkgname=zathura-pdf-poppler
+version=0.3.2
+revision=1
+build_style=meson
+hostmakedepends="pkg-config"
+makedepends="poppler-devel poppler-glib-devel zathura-devel"
+depends="zathura"
+short_desc="PDF support for zathura (using poppler)"
+maintainer="lemmi <lemmi@nerd2nerd.org>"
+license="Zlib"
+homepage="https://git.pwmt.org/pwmt/zathura-pdf-poppler/"
+changelog="https://pwmt.org/projects/zathura-pdf-poppler/changelog/${version}/index.html"
+distfiles="https://git.pwmt.org/pwmt/${pkgname}/-/archive/${version}/${pkgname}-${version}.tar.gz"
+checksum=2e64e59ed46b0d93fbad70eca9a77cc720c5909c988b0b6637333504da52b23d
+
+conflicts="zathura-pdf-mupdf>=0"
+
+post_install() {
+	vlicense LICENSE
+}

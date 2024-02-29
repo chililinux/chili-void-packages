@@ -1,0 +1,25 @@
+# Template file for 'hcloud'
+pkgname=hcloud
+version=1.42.0
+revision=1
+build_style=go
+build_helper=qemu
+go_import_path=github.com/hetznercloud/cli
+go_package=github.com/hetznercloud/cli/cmd/hcloud
+go_ldflags="-X github.com/hetznercloud/cli/internal/version.Version=${version}"
+short_desc="Command-line interface for Hetzner Cloud"
+maintainer="Gerardo Di Iorio <arete74@gmail.com>"
+license="MIT"
+homepage="https://github.com/hetznercloud/cli"
+changelog="https://raw.githubusercontent.com/hetznercloud/cli/main/CHANGELOG.md"
+distfiles="https://github.com/hetznercloud/cli/archive/v${version}.tar.gz"
+checksum=b99ec2b89d1485c3b14d6db2966cc355c9173ca98fe29754216b70f72317d8ad
+
+post_install() {
+	vlicense LICENSE
+	vdoc README.md
+	for shell in bash fish zsh; do
+		vtargetrun ${DESTDIR}/usr/bin/hcloud completion ${shell} > completions.${shell}
+		vcompletion completions.${shell} ${shell}
+	done
+}

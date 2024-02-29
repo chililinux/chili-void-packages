@@ -1,0 +1,23 @@
+# Template file for 'wavemon'
+pkgname=wavemon
+version=0.9.5
+revision=1
+build_style="gnu-configure"
+hostmakedepends="pkg-config"
+makedepends="ncurses-devel libnl3-devel"
+short_desc="Ncurses-based monitoring application for wireless network devices"
+maintainer="Leah Neukirchen <leah@vuxu.org>"
+license="GPL-2.0-or-later"
+homepage="https://github.com/uoaerg/wavemon"
+distfiles="https://github.com/uoaerg/${pkgname}/archive/v${version}.tar.gz"
+checksum=f84c55a40b470f2b98908d20cd0b38ffef6f587daed23b50281c9592df3331c6
+
+CFLAGS=-D_XOPEN_SOURCE_EXTENDED
+
+post_extract() {
+	vsed -i -e 's/\?=/=/g' Makefile.in
+}
+
+post_install() {
+	rm -rf ${DESTDIR}/usr/share/wavemon
+}

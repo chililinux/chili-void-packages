@@ -1,0 +1,16 @@
+# Template file for 'gst1-python3'
+pkgname=gst1-python3
+version=1.22.9
+revision=1
+build_style=meson
+hostmakedepends="pkg-config python3"
+makedepends="libglib-devel python3-devel python3-gobject-devel gst-plugins-base1-devel"
+depends="python3-gobject"
+short_desc="Python3 bindings for GStreamer 1.x"
+maintainer="Orphaned <orphan@voidlinux.org>"
+license="LGPL-2.1-or-later"
+homepage="https://gstreamer.freedesktop.org"
+changelog="https://gstreamer.freedesktop.org/releases/${version%.*}/#${version}"
+distfiles="https://gstreamer.freedesktop.org/src/gst-python/gst-python-${version}.tar.xz"
+checksum=3f9d5c6ffefda268703744b592a6b3983aa6723273b1220ecbcb62c2a5800009
+make_check=no # required module 'imp' deprecated in python 3.12

@@ -1,0 +1,16 @@
+# Template file for 'grap'
+pkgname=grap
+version=1.47
+revision=1
+build_style=gnu-configure
+hostmakedepends="flex"
+short_desc="Language for typesetting graphs"
+maintainer="Andrew Benson <abenson+void@gmail.com>"
+license="BSD-2-Clause"
+homepage="https://www.lunabase.org/~faber/Vault/software/grap/"
+distfiles="${homepage}/grap-${version}.tar.gz"
+checksum=8ff6f0dc43a660e2ac7423f161247fd0d5b765960e32d62f62ab4a404bbc11c1
+
+post_install() {
+	vlicense COPYRIGHT LICENSE
+}

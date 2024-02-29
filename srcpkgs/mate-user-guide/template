@@ -1,0 +1,13 @@
+# Template file for 'mate-user-guide'
+pkgname=mate-user-guide
+version=1.26.2
+revision=1
+build_style=gnu-configure
+hostmakedepends="pkg-config intltool itstool"
+short_desc="MATE User Guide"
+maintainer="skmpz <dem.procopiou@gmail.com>"
+license="GFDL-1.1-or-later"
+homepage="https://mate-desktop.org"
+changelog="https://raw.githubusercontent.com/mate-desktop/mate-user-guide/master/NEWS"
+distfiles="https://pub.mate-desktop.org/releases/${version%.*}/mate-user-guide-${version}.tar.xz"
+checksum=4d32b6e3564ac8f4eaab2b15482df7f9769750df8811abed837d0a2e7ee3808b
