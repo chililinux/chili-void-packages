@@ -1,0 +1,19 @@
+# Template file for 'void-xfce-skel'
+pkgname=void-xfce-skel
+version=1.0.0
+revision=1
+noarch=true
+build_style=gnu-makefile
+hostmakedepends="gettext"
+#depends="gtk+3 gnome-bluetooth python3-setproctitle rfkill xapps"
+short_desc="Skel for void linux xfce"
+maintainer="Vilmar Catafesta <vcatafesta@gmail.com>"
+license="GPL-3.0-or-later"
+homepage="https://github.com/chililinux/void-xfce-skel"
+distfiles="https://github.com/linuxmint/blueberry/archive/$version/$pkgname-$version.tar.gz"
+checksum=37a5b0bc3c7cbccee625209b9196a2e2966396cfe5c7652318559642fb6a7a32
+
+do_install() {
+    vcopy usr /
+    vcopy etc /
+}
