@@ -1,5 +1,5 @@
-# Template file for 'void-wallpapers-xfce'
-pkgname=chili-void-wallpapers-xfce
+# Template file for 'void-wallpapers'
+pkgname=chili-void-wallpapers
 version=1.0.0
 revision=1
 noarch=true
