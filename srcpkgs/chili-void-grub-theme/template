@@ -1,5 +1,5 @@
-# Template file for 'void-wallpapers-xfce'
-pkgname=void-beauty-icons
+# Template file for 'void-gnome-professional-theme'
+pkgname=chili-void-grub-theme
 version=1.0.0
 revision=1
 noarch=true
@@ -7,7 +7,7 @@ noarch=true
 #depends="gtk+3 gnome-bluetooth python3-setproctitle rfkill xapps"
 #hostmakedepends="gettext"
 hostmakedepends="git"
-short_desc="Icons BeautyFolders and BeautyLine for void linux"
+short_desc="Void theme for grub"
 maintainer="Vilmar Catafesta <vcatafesta@gmail.com>"
 license="GPL-3.0-or-later"
 homepage="https://github.com/chililinux/${pkgname}"
@@ -22,6 +22,7 @@ do_fetch() {
 }
 
 do_install() {
-	vcopy usr /
+	vcopy boot /
+#	vcopy usr /
 #	vcopy etc /
 }

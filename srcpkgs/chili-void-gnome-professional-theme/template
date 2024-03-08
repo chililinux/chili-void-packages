@@ -1,5 +1,5 @@
 # Template file for 'void-gnome-professional-theme'
-pkgname=void-gnome-professional-theme
+pkgname=chili-void-gnome-professional-theme
 version=1.0.0
 revision=1
 noarch=true

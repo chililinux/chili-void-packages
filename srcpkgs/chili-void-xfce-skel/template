@@ -1,5 +1,5 @@
-# Template file for 'void-wallpapers-xfce'
-pkgname=void-wallpapers-xfce
+# Template file for 'void-xfce-skel'
+pkgname=chili-void-xfce-skel
 version=1.0.0
 revision=1
 noarch=true
@@ -7,13 +7,13 @@ noarch=true
 #depends="gtk+3 gnome-bluetooth python3-setproctitle rfkill xapps"
 #hostmakedepends="gettext"
 hostmakedepends="git"
-short_desc="Wallpappers for void linux xfce"
+short_desc="Skel void linux xfce"
 maintainer="Vilmar Catafesta <vcatafesta@gmail.com>"
 license="GPL-3.0-or-later"
-homepage="https://github.com/chililinux/void-wallpapers-xfce"
-#distfiles="https://github.com/chililinux/void-wallpapers-xfce/archive/$version/$pkgname-$version.tar.gz"
+homepage="https://github.com/chililinux/void-xfce-skel"
+#distfiles="${homepage}/archive/$version/$pkgname-$version.tar.gz"
 #checksum=37a5b0bc3c7cbccee625209b9196a2e2966396cfe5c7652318559642fb6a7a32
-wrksrc=$pkgname
+wrksrc=${pkgname}
 
 do_fetch() {
 	git clone --depth 1 ${homepage} ${wrksrc}
@@ -22,6 +22,6 @@ do_fetch() {
 }
 
 do_install() {
+	vcopy etc /
 	vcopy usr /
-#	vcopy etc /
 }
