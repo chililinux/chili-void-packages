@@ -27,7 +27,7 @@ hook() {
 			if [ -n "$pyver" ]; then
 				shebang="#!/usr/bin/python${pyver%.*}"
 			else
-				shebang="$default_shebang"
+				shebang="#!/usr/bin/python3"
 			fi
 
 			basefile=${file#$PKGDESTDIR}
