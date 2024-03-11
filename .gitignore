@@ -16,7 +16,7 @@
 !/common
 !/etc
 !/srcpkgs
-!/hostdir/binpkgs
+!/hostdir/binpkgs/
 !/xbps-src
 !/sign.sh
 !/rmake
