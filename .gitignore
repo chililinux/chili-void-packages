@@ -16,7 +16,10 @@
 !/common
 !/etc
 !/srcpkgs
+!/hostdir/binpkgs
 !/xbps-src
+!/sign.sh
+!/rmake
 etc/conf
 etc/conf.*
 etc/virtual
