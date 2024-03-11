@@ -17,8 +17,9 @@ if [[ ! -e private.pem ]]; then
 #	openssl genrsa -out private.pem
 fi
 
-#remove old .sig2
+#remove old
 rm -vf $repo/x86_64-repodata
+#remove old .sig2
 rm -vf $repo/*.sig2
 
 #cria x86_repodata
