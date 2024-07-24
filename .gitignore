@@ -15,6 +15,7 @@
 !/README.md
 !/common
 !/etc
+!/pkgs
 !/srcpkgs
 !/hostdir/binpkgs/
 !/xbps-src
