@@ -1,0 +1,20 @@
+First a RSA key must be created with openssl(1) or ssh-keygen(1):
+
+$ openssl genrsa -des3 -out privkey.pem 4096
+or
+$ ssh-keygen -t rsa -b 4096 -m PEM -f privkey.pem
+
+Once the RSA private key is ready you can use it to initialize the repository metadata:
+
+$ xbps-rindex --sign --signedby "I'm Groot" --privkey privkey.pem $PWD/hostdir/binpkgs
+And then make a signature per package:
+
+$ xbps-rindex --sign-pkg --privkey privkey.pem $PWD/hostdir/binpkgs/*.xbps
+
+Create a directory that contains the final package called foo-0.5_1.x86_64.xbps and run:
+$ xbps-rindex -a /path/to/dir/*.xbps
+
+ssh-keygen -t rsa -b 4096 -m PEM -f privkey.pem
+xbps-rindex --sign-pkg --privkey privkey.pem $PWD/*.xbps
+xbps-rindex -a *.xbps
+xbps-rindex --sign --signedby 'Vilmar Catafesta <vcatafesta@gmail.com>' --privkey privkey.pem $PWD
