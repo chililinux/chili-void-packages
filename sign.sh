@@ -7,7 +7,7 @@
 # The xbps-rindex(1) tool is used to sign repositories.
 # The private key for signing packages needs to be a PEM-encoded RSA key. The key can be generated with either ssh-keygen(1) or openssl(1):
 
-repo="$PWD/hostdir/xbps"
+repo="$PWD/hostdir/binpkgs/main"
 packager='Vilmar Catafesta <vcatafesta@gmail.com>'
 
 if [[ ! -e private.pem ]]; then

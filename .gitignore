@@ -21,9 +21,9 @@
 !/xbps-src
 !/sign.sh
 !/rmake
-etc/conf
-etc/conf.*
-etc/virtual
-etc/xbps.d/custom
-etc/repo-keys
-private*
+!/etc/conf
+!/etc/conf.*
+!/etc/virtual
+!/etc/xbps.d/custom
+!/etc/repo-keys
+!/private*

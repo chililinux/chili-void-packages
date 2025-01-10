@@ -1,6 +1,6 @@
 # Template file for 'syncthing'
 pkgname=syncthing
-version=1.27.3
+version=1.29.1
 revision=1
 build_style=go
 go_import_path="github.com/syncthing/syncthing"
@@ -16,12 +16,12 @@ license="MPL-2.0"
 homepage="https://syncthing.net/"
 changelog="https://github.com/syncthing/syncthing/releases"
 distfiles="https://github.com/syncthing/syncthing/archive/v${version}.tar.gz"
-checksum=fa2edae90c7999a6f667bba26a6c63c7165647f77c02c83860237c6d08ee4bbd
+checksum=a9446652ce994ef479e8637b797803c7f53dec65d4cf45dfa6a394ff3475bbaa
 
 pre_build() {
 	GOARCH= go generate \
 		github.com/syncthing/syncthing/lib/api/auto \
-		github.com/syncthing/syncthing/cmd/strelaypoolsrv/auto
+		github.com/syncthing/syncthing/cmd/infra/strelaypoolsrv/auto
 }
 
 post_install() {

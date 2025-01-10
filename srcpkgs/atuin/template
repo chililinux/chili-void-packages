@@ -1,6 +1,6 @@
 # Template file for 'atuin'
 pkgname=atuin
-version=18.0.1
+version=18.4.0
 revision=1
 build_style=cargo
 build_helper=qemu
@@ -9,16 +9,16 @@ make_check_args="--
  --skip sync
  --skip change_password
  --skip multi_user_test"
-make_install_args="--path atuin"
+make_install_args="--path crates/atuin"
 hostmakedepends="pkg-config sqlite-devel"
 makedepends="sqlite-devel"
 short_desc="Magical shell history"
-maintainer="Marcin Puc <tranzystorek.io@protonmail.com>"
+maintainer="tranzystorekk <tranzystorek.io@protonmail.com>"
 license="MIT"
 homepage="https://atuin.sh"
 changelog="https://raw.githubusercontent.com/atuinsh/atuin/main/CHANGELOG.md"
 distfiles="https://github.com/atuinsh/atuin/archive/refs/tags/v${version}.tar.gz"
-checksum=f9e4af24a78678d9d4283912561977aae7caf10b8dbcb3a468a09efa2ffcc1a3
+checksum=de6d2bcf10de4d757916c7e92a70f15929fc1dea75abc4df09b0baedf26a53b2
 
 post_install() {
 	vlicense LICENSE

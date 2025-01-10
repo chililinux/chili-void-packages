@@ -1,12 +1,12 @@
 # Template file for 'scrcpy'
 pkgname=scrcpy
-version=2.3.1
+version=3.1
 revision=1
 build_style=meson
 configure_args="-Dcompile_server=false
  -Dprebuilt_server=/usr/share/scrcpy/scrcpy-server-v${version}"
 hostmakedepends="pkg-config"
-makedepends="SDL2-devel ffmpeg-devel"
+makedepends="SDL2-devel ffmpeg6-devel"
 depends="android-tools"
 short_desc="Display and control your Android device"
 maintainer="SolitudeSF <solitudesf@protonmail.com>"
@@ -14,8 +14,8 @@ license="Apache-2.0"
 homepage="https://github.com/Genymobile/scrcpy"
 distfiles="https://github.com/Genymobile/scrcpy/archive/v${version}.tar.gz
  https://github.com/Genymobile/scrcpy/releases/download/v${version}/scrcpy-server-v${version}"
-checksum="76f38779f00d91d0b46a399ebca32c82ff1facdbd843871b7e46c2e7cad38a42
- f6814822fc308a7a532f253485c9038183c6296a6c5df470a9e383b4f8e7605b"
+checksum="beaa5050a3c45faa77cedc70ad13d88ef26b74d29d52f512b7708671e037d24d
+ 958f0944a62f23b1f33a16e9eb14844c1a04b882ca175a738c16d23cb22b86c0"
 skip_extraction="scrcpy-server-v${version}"
 
 post_install() {

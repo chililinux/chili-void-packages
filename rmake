@@ -1,13 +1,16 @@
 #!/usr/bin/env bash
 # shellcheck shell=bash disable=SC1091,SC2039,SC2166
 
+./xbps-src binary-bootstrap
+echo XBPS_ALLOW_RESTRICTED=yes >> etc/conf
+
 repo=$PWD/hostdir/binpkgs
 packages="$@"
 
 for i in ${packages[@]}; do
 	if ./xbps-src -j$(nproc) pkg $1; then
-		#	mv -vf $repo/main/$1*.xbps $repo
-		#	./sign.sh
+		mv -vf $repo/main/$1*.xbps $repo
+		./sign.sh
 		:
 	fi
 done
