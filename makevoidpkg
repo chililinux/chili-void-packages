@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 # shellcheck shell=bash disable=SC1091,SC2039,SC2166,SC2001,SC2034,SC2183,SC2154,SC2059,SC2229,SC2128
 #
-#  chili-make-repo
+#  rmake/makepkgvoid
 #  Created: 2024/08/21 - 19:07
 #  Altered: dom 27 out 2024 09:19:14 -04
-#  Updated: dom 12 jan 2025 01:41:48 -04
+#  Updated: dom 19 jan 2025 08:56:43 -04
 #
 #  Copyright (c) 2024-2025, Vilmar Catafesta <vcatafesta@gmail.com>
 #  All rights reserved.
@@ -48,7 +48,7 @@ shopt -s extglob
 
 #system
 declare APP="${0##*/}"
-declare VERSION="1.1.11-20250111"
+declare VERSION="1.19.01-20250119"
 declare APPDESC="Wrapper para gerenciamento de repositorios like Void Linux"
 declare nocolor=false
 declare verbose=false
@@ -486,6 +486,45 @@ unset_varcolors() {
 	INFO="${white}[${cinza}i${rst}${white}]${rst}"
 }
 
+sh_version() {
+	cat <<-EOF
+${BOLD}${CYAN}${0##*/} v${VERSION}${RESET}
+${APPDESC}
+${BOLD}${black}Copyright (C) 2024-2024 ${reset}ChiliLinux Team${black}
+
+  Este é um software livre: você é livre para alterá-lo e redistribuí-lo.
+  O $APP é disponibilizado para você sob a ${yellow}Licença MIT${black}, e
+  inclui software de código aberto sob uma variedade de outras licenças.
+  Você pode ler instruções sobre como baixar e criar para você mesmo
+  o código fonte específico usado para criar esta cópia.
+  ${red}Este programa vem com absolutamente NENHUMA garantia.
+  ${reset}
+EOF
+}
+
+sh_usage() {
+	cat <<-EOF
+${BOLD}${CYAN}${0##*/} v${VERSION}${RESET}
+${APPDESC}
+${red}Uso: ${reset}$APP ${cyan}[opções]${reset}
+
+  ${cyan}Opções:${reset}
+    -c|--config                    ${cyan} # configurar ambiente ${reset}
+    -s|--synchronize               ${cyan} # sincronizar local com remoto (puxar/empurrar) ${reset}
+    -S|--sign                      ${cyan} # assinar pacote faltantes ${reset}
+    -n|--nocolor                   ${cyan} # Suprime a impressão de cores ${reset}
+    -v|--verbose                   ${cyan} # ativa modo verboso ${reset}
+    -V|--version                   ${cyan} # Imprime a versão do aplicativo ${reset}
+    -h|--help                      ${cyan} # Mostra este Help ${reset}
+
+  ${red}ex: ${cyan}${APP} -o chili -s testing      ${reset}
+      ${cyan}${APP} -o chili -s all          ${reset}
+      ${cyan}${APP} -o chili --sign testing  ${reset}
+      ${cyan}${APP} -o chili --sign all      ${reset}
+EOF
+	exit 0
+}
+
 update_version_revision() {
 	local file="$1"
 
@@ -526,7 +565,7 @@ get_template_from_repo() {
 }
 
 sh_config() {
-	local_PATH=/github/void-packages.chili/pkgs
+	local_PATH=$PWD/pkgs
 	remote_USER=u537062342
 	remote_PATH=/home/u537062342/domains/chililinux.com/public_html/void/current
 	remote_PORT=65002
@@ -594,7 +633,7 @@ sh_update_repo() {
 	popd >/dev/null 2>&- || exit 1
 	replicate '-'
 	sh_create_databases_and_sign
-  sh_remote_push
+	sh_remote_push
 }
 
 sh_build_package() {
@@ -612,4 +651,61 @@ sh_build_package() {
 }
 
 set_varcolors
-sh_update_repo
+if test $# -lt 1; then
+	sh_usage
+fi
+#sh_update_repo
+
+while [[ $# -gt 0 ]]; do
+	arg="$1"
+	case "$arg" in
+	-v | --verbose)
+		verbose=true
+		msg_info "Detectado parâmetro -v - modo verbose ativado!"
+		shift
+		;;
+	-n | --nocolor)
+		nocolor=true
+		if [[ "$nocolor" == "true" ]]; then
+			unset_varcolors
+			msg_info "Detectado parâmetro -n - desativando saida em cores!"
+		else
+			set_varcolors
+		fi
+		shift
+		;;
+	-V | --version)
+		sh_version
+		exit 0
+		;;
+	-h | --help)
+		sh_usage
+		;;
+	-o | --org | --organization)
+		next_arg="${2:-}"
+		organization="$next_arg"
+		shift 2
+		;;
+	-S | --sign)
+    sh_create_databases_and_sign
+		shift
+		exit 0
+		;;
+	-s | --synchronize)
+    sh_update_repo
+    shift
+    exit 0
+		;;
+	-c | --config)
+		sh_setup
+		break
+		;;
+	*)
+		die "Opção $1 inválida! (Use -h para ajuda)"
+		;;
+	esac
+done
+
+if [[ $# -lt 1 ]]; then
+	die "Faltou parâmetros para continuar! (Use -h para ajuda)"
+fi
