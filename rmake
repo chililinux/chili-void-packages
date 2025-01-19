@@ -526,9 +526,9 @@ update_version_revision() {
 	local file="$srcpkgs/$1/template"
 
 	msg_info '#Substitui 'version=*' pela data atual no formato YYYYMMDD'
-	sed -i "s/^version=.*/version=$(date +%Y%m%d)/" "$file"
+	sed -i "s/^version=.*/version=\$(date +%Y%m%d)/" "$file"
 	msg_info '#Substitui 'revision=*' pela hora atual no formato HHMM'
-	sed -i "s/^revision=.*/revision=$(date +%H%M)/" "$file"
+	sed -i "s/^revision=.*/revision=\$(date +%H%M)/" "$file"
 	msg_info "As linhas 'version' e 'revision' foram atualizadas em $file"
 }
 

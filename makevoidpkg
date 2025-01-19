@@ -526,9 +526,9 @@ update_version_revision() {
 	local file="$srcpkgs/$1/template"
 
 	msg_info '#Substitui 'version=*' pela data atual no formato YYYYMMDD'
-	sed -i "s/^version=.*/version=$(date +%Y%m%d)/" "$file"
+	sed -i "s/^version=.*/version=\$(date +%Y%m%d)/" "$file"
 	msg_info '#Substitui 'revision=*' pela hora atual no formato HHMM'
-	sed -i "s/^revision=.*/revision=$(date +%H%M)/" "$file"
+	sed -i "s/^revision=.*/revision=\$(date +%H%M)/" "$file"
 	msg_info "As linhas 'version' e 'revision' foram atualizadas em $file"
 }
 
@@ -549,14 +549,14 @@ get_template_from_repo() {
 	# Baixa o arquivo template no diretório correto
 	if pushd "$dest" >/dev/null; then
 		if curl -f -O "$url"; then
-			echo "Template do pacote '$pkg' baixado com sucesso."
+			msg_info "Template do pacote '$pkg' baixado com sucesso em: ${yellow}$dest/template ${reset}"
 		else
-			echo "Erro: Não foi possível baixar o template de '$url'."
+			msg_warn "Erro: Não foi possível baixar o template de '$url'."
 			return 1
 		fi
 		popd >/dev/null
 	else
-		echo "Erro: Não foi possível acessar o diretório '$dest'."
+		msg_warn "Erro: Não foi possível acessar o diretório '$dest'."
 		return 1
 	fi
 }

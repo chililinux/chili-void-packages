@@ -1,13 +1,13 @@
-# Template file for 'chili-xfwm-axiomd-theme'
-pkgname=chili-xfwm-axiomd-theme
-version=20250119
-revision=1243
+# Template file for 'chili-xfce-config'
+pkgname=chili-xfce-config
+version=$(date +%Y%m%d)
+revision=$(date +%H%M)
 noarch=true
 #build_style=gnu-makefile
 #depends="gtk+3 gnome-bluetooth python3-setproctitle rfkill xapps"
 #hostmakedepends="gettext"
 hostmakedepends="git"
-short_desc="Inspired by the metacity theme 'fresh'"
+short_desc="Package configuration Desktop XFCE for ChiliLinux"
 maintainer="Vilmar Catafesta <vcatafesta@gmail.com>"
 license="MIT"
 homepage="https://github.com/chililinux/${pkgname}"
@@ -22,6 +22,6 @@ do_fetch() {
 }
 
 do_install() {
-#	vcopy etc /
+	vcopy etc /
 	vcopy usr /
 }
