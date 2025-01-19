@@ -18,22 +18,25 @@ if [[ ! -e private.pem ]]; then
 #	openssl genrsa -out private.pem
 fi
 
-mkdir -p pkgs
-cp -Rpva $repomain/* $repo/
+msg_run "mkdir -p pkgs 1>/dev/null"
+msg_run "cp -Rpva $repomain/* $repo/ 1>/dev/null"
 
 #remove old
-rm -vf $repo/x86_64-repodata
+msg_run "rm -vf $repo/x86_64-repodata 1>/dev/null"
 #remove old .sig2
-rm -vf $repo/*.sig2
+msg_run "rm -vf $repo/*.sig2 1>/dev/null"
 
 #cria x86_repodata
-xbps-rindex -v --add --force $repo/*.xbps
+#msg_raw "xbps-rindex -v --add --force $repo/*.xbps 1>/dev/null"
+msg_run 'xbps-rindex -v --add --force $repo/*.xbps 1>/dev/null'
 
 # Once the key is generated, the public part of the private key has to be added to the repository metadata. This step is required only once.
-xbps-rindex -v --privkey private.pem --sign --signedby "$packager" "$repo"
+#msg_raw 'xbps-rindex -v --privkey private.pem --sign --signedby $packager $repo 1>/dev/null'
+msg_run 'xbps-rindex -v --privkey private.pem --sign --signedby "$packager" "$repo" 1>/dev/null'
 # Then sign one or more packages with the following command:
 
-xbps-rindex -v --privkey private.pem --sign-pkg "$repo"/*.xbps
+#msg_raw 'xbps-rindex -v --privkey private.pem --sign-pkg $repo/*.xbps 1>/dev/null'
+msg_run 'xbps-rindex -v --privkey private.pem --sign-pkg "$repo"/*.xbps 1>/dev/null'
 # Note that future packages will not be automatically signed.
 
 
