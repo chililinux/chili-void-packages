@@ -23,6 +23,7 @@ vivaldi-5.5.2805.48_1.x86_64.xbps
 !/xbps-src
 !/sign.sh
 !/rmake
+!/makevoidpkg
 !/etc/conf
 !/etc/conf.*
 !/etc/virtual
