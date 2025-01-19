@@ -21,6 +21,41 @@ update_version_revision() {
   echo "As linhas 'version' e 'revision' foram atualizadas em $file."
 }
 
+sh_config() {
+  local_PATH=/github/void-packages.chili/pkgs
+  remote_USER=u537062342
+  remote_PATH=/home/u537062342/domains/chililinux.com/public_html/void/current
+  remote_PORT=65002
+  remote_HOST=154.49.247.66
+  verbose=true
+}
+
+sh_remote_pull() {
+    sh_config
+    msg_raw "organization: ${organization}"
+    msg_raw "   prefix_DB: ${prefix_DB}"
+    msg_raw "     db_name: ${db_name}"
+    msg_raw "      branch: ${branch}"
+    msg_raw "  local_PATH: ${local_PATH}"
+    msg_raw " remote_PATH: ${remote_PATH}"
+    msg_raw " remote_USER: ${remote_USER}"
+    msg_raw " remote_HOST: ${remote_HOST}"
+    msg_raw " remote_PORT: ${remote_PORT}"
+
+    pushd "$local_PATH" >/dev/null 2>&- || exit 1
+    msg_info "${cyan}Sincronizando... Puxando do remoto para local ${reset}"
+    msg_raw "    Local : ${local_PATH}"
+    msg_raw "   Remoto : ${remote_PATH}"
+    if $verbose; then
+      echo -n "$black"
+      rsync --itemize-changes --info=skip0 -Craz -e "ssh -p ${remote_PORT}" "${remote_USER}"@"${remote_HOST}":"${remote_PATH}"/ "${local_PATH}"/
+      echo -n "$reset"
+    else
+      rsync --info=skip0 -Craz -e "ssh -p ${remote_PORT}" "${remote_USER}"@"${remote_HOST}":"${remote_PATH}"/ "${local_PATH}"/
+    fi
+  done
+}
+
 get_template_from_repo() {
   local pkg="$1"
   local dest="$PWD/srcpkgs/$pkg"
