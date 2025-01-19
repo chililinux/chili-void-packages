@@ -60,7 +60,6 @@ export repo="$root_PATH/pkgs"
 export repomain="$root_PATH/hostdir/binpkgs"
 export srcpkgs="$root_PATH/srcpkgs"
 declare processed=false
-declare packages="$@"
 
 errorbeep() {
 	printf '\a' # beep
@@ -507,6 +506,7 @@ sh_usage() {
 		${red}Uso: ${reset}$APP ${cyan}[opções]${reset}
 
 		  ${cyan}Opções:${reset}
+		    -b|--build <package>           ${cyan} # construir pacote <package> ${reset}
 		    -s|--synchronize               ${cyan} # sincronizar local com remoto (puxar/empurrar) ${reset}
 		    -S|--sign                      ${cyan} # assinar pacote faltantes ${reset}
 		    -n|--nocolor                   ${cyan} # Suprime a impressão de cores ${reset}
@@ -705,6 +705,11 @@ search_for_sign_package() {
 }
 
 sh_build_package() {
+  local packages="$@"
+
+  ./xbps-src binary-bootstrap
+  echo XBPS_ALLOW_RESTRICTED=yes >etc/conf
+
 	for i in ${packages[@]}; do
 		if ./xbps-src -j$(nproc) pkg $1; then
 			mv -vf $repomain/$1*.xbps $repo/
@@ -714,12 +719,10 @@ sh_build_package() {
 		fi
 	done
 	if $processed; then
-    . $root_PATH/sign.sh
+    search_for_sign_package
 	fi
 }
 
-./xbps-src binary-bootstrap
-echo XBPS_ALLOW_RESTRICTED=yes >>etc/conf
 set_varcolors
 
 if test $# -lt 1; then
@@ -765,6 +768,12 @@ while [[ $# -gt 0 ]]; do
 		;;
 	-s | --synchronize)
 		sh_update_repo
+		shift
+		exit 0
+		;;
+	-b | --build)
+		next_arg="${2:-}"
+    sh_build_package "$next_arg"
 		shift
 		exit 0
 		;;
