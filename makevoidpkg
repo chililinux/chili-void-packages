@@ -1,63 +1,615 @@
 #!/usr/bin/env bash
-# shellcheck shell=bash disable=SC1091,SC2039,SC2166
+# -*- coding: utf-8 -*-
+# shellcheck shell=bash disable=SC1091,SC2039,SC2166,SC2001,SC2034,SC2183,SC2154,SC2059,SC2229,SC2128
+#
+#  chili-make-repo
+#  Created: 2024/08/21 - 19:07
+#  Altered: dom 27 out 2024 09:19:14 -04
+#  Updated: dom 12 jan 2025 01:41:48 -04
+#
+#  Copyright (c) 2024-2025, Vilmar Catafesta <vcatafesta@gmail.com>
+#  All rights reserved.
+#
+#  Redistribution and use in source and binary forms, with or without
+#  modification, are permitted provided that the following conditions
+#  are met:
+#  1. Redistributions of source code must retain the above copyright
+#     notice, this list of conditions and the following disclaimer.
+#  2. Redistributions in binary form must reproduce the above copyright
+#     notice, this list of conditions and the following disclaimer in the
+#     documentation and/or other materials provided with the distribution.
+#
+#  THIS SOFTWARE IS PROVIDED BY THE AUTHOR AS IS'' AND ANY EXPRESS OR
+#  IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+#  OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+#  IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
+#  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+#  NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+#  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+#  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+#  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+#  THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+##############################################################################
+#export LANGUAGE=pt_BR
+export TEXTDOMAINDIR=/usr/share/locale
+export TEXTDOMAIN=rmake
+export TERM=${TERM:-xterm}
+export TERM=${TERM:-xterm-256color}
+
+reset=$(tput sgr0)
+green=$(tput bold)$(tput setaf 2)
+pink=$(tput setaf 5)
+
+#debug
+export PS4='${red}${0##*/}${green}[$FUNCNAME]${pink}[$LINENO]${reset}'
+#set -x
+#set -e
+shopt -s extglob
+
+#system
+declare APP="${0##*/}"
+declare VERSION="1.1.11-20250111"
+declare APPDESC="Wrapper para gerenciamento de repositorios like Void Linux"
+declare nocolor=false
+declare verbose=false
+declare config_file="$HOME/.rmake.conf"
+declare FETCH_RE='-[^-]+[0-9]+[^.]*.xbps$'
+declare PKG_EXT='xbps'
 
 ./xbps-src binary-bootstrap
-echo XBPS_ALLOW_RESTRICTED=yes >> etc/conf
+echo XBPS_ALLOW_RESTRICTED=yes >>etc/conf
 
 repomain=$PWD/hostdir/binpkgs
 repo=$PWD/pkgs
 packages="$@"
 processed=false
 
+errorbeep() {
+	printf '\a' # beep
+}
+
+get_organization_conf() {
+	local_PATH=$(TIni.Get "$config_file" "$organization" 'local_PATH')
+	prefix_DB=$(TIni.Get "$config_file" "$organization" 'prefix_DB')
+	remote_USER=$(TIni.Get "$config_file" "$organization" 'remote_USER')
+	remote_PORT=$(TIni.Get "$config_file" "$organization" 'remote_PORT')
+	remote_HOST=$(TIni.Get "$config_file" "$organization" 'remote_HOST')
+	remote_PATH=$(TIni.Get "$config_file" "$organization" 'remote_PATH')
+	SECRETKEY=$(TIni.Get "$config_file" "$organization" 'SECRETKEY')
+	GPGKEY=$(TIni.Get "$config_file" "$organization" 'GPGKEY')
+}
+
+dbseek_conf() {
+	get_organization_conf "$@"
+}
+
+function row() { echo "$Prow"; }
+function col() { echo "$Pcol"; }
+function lastrow() { tput lines; }
+function lastcol() { tput cols; }
+
+function print() {
+	local row="$1"
+	local col="$2"
+	local msg="$3"
+	local color="${4:-${Acores[box]}}"
+
+	setpos "$row" "$col"
+	printf "${color}${msg}"
+}
+
+function setpos() {
+	local row="$1"
+	local col="$2"
+
+	Prow="$row"
+	Pcol="$col"
+	# tput cup "$row" "$col"
+	printf "\e[$((row + 1));$((col + 1))H"
+}
+
+function get() {
+	local row="$1"
+	local col="$2"
+	local prompt="$3"
+	local new_value="$4"
+	local old_value="$5"
+	local color="${6:-${Acores[box]}}"
+
+	setpos "$row" "$col"
+	printf "%s" "${reset}$color"
+	read -r -p "${prompt}${reverse}" -e -i "$old_value" "$new_value"
+	tput sc # Salva a posição atual do cursor
+	echo -e "$reset"
+}
+
+function readconf() {
+	local msg="$1"
+	local color="${2:-${Acores[conf]}}"
+	local nobox="${3:-0}"
+	local largura_mensagem
+	local nrow
+	local ncol
+
+	nrow="$(row)"
+	ncol="$(col)"
+	echo -n -e "$color"
+	printf '\a' # beep
+	if ((nobox)); then
+		setpos "$nrow" "$ncol"
+	else
+		largura_mensagem=$((${#msg} + 9))
+		#mabox "$nrow" "$ncol" 3 "$largura_mensagem"
+		setpos "$((nrow + 1))" "$((ncol + 1))"
+	fi
+	if [[ $LC_DEFAULT -eq 0 ]]; then
+		read -n1 -s -r -p "$msg [S/n]"
+	else
+		read -n1 -s -r -p "$msg [Y/n]"
+	fi
+	echo -n -e "$reset"
+	case "${REPLY^}" in
+	[SY]) return 0 ;;
+	"") return 0 ;;
+	*) return 1 ;;
+	esac
+}
+
+function TIni.Get() {
+	local config_file="$1"
+	local section="$2"
+	local key="$3"
+
+	[[ ! -e "$config_file" ]] && echo "" >"$config_file"
+	sed -nr "/^\[$section\]/ { :l /^[[:space:]]*${key}[[:space:]]*=/ { s/[^=]*=[[:space:]]*//; p; q;}; /^;/b; n; b l;}" "$config_file"
+}
+export -f TIni.Get
+
+# Função para atualizar um valor no arquivo INI ou criar o arquivo se não existir
+# Exemplo de uso: atualize o valor da chave "versao" da seção "App" no arquivo "config.ini"
+# TIni.Set "config.ini" "App" "versao" "2.0"
+function TIni.Set {
+	local config_file="$1"
+	local section="$2"
+	local key="$3"
+	local new_value="$4"
+	local ident_keys=1
+
+	declare -A ini_data # Array associativo para armazenar as seções e chaves
+
+	if [[ -r "$config_file" ]]; then
+		# Ler o arquivo INI e armazenar as informações em um array associativo
+		local current_section=""
+		while IFS= read -r line; do
+			if [[ "$line" =~ ^\[(.*)\] ]]; then
+				current_section="${BASH_REMATCH[1]}"
+			elif [[ "$line" =~ ^([^=]+)=(.*) ]]; then
+				local current_key="${BASH_REMATCH[1]}"
+				local current_value="${BASH_REMATCH[2]}"
+				ini_data["$current_section,$current_key"]="$current_value"
+			fi
+		done <"$config_file"
+	fi
+
+	# Atualizar o valor no array associativo
+	ini_data["$section,$key"]="$new_value"
+
+	# Reescrever o arquivo INI com as seções e chaves atualizadas
+	echo "" >"$config_file"
+	local current_section=""
+	for section_key in "${!ini_data[@]}"; do
+		local section_name="${section_key%,*}"
+		local key_name="${section_key#*,}"
+		local value="${ini_data[$section_key]}"
+
+		# Verifique se a seção já foi gravada
+		if [[ "$current_section" != "$section_name" ]]; then
+			echo "" >>"$config_file"
+			echo "[$section_name]" >>"$config_file"
+			current_section="$section_name"
+		fi
+		echo "$key_name=$value" >>"$config_file"
+	done
+	#	TIni.AlignAllSections "$config_file"
+	#	big-tini-pretty -q "$config_file"
+	TIni.Sanitize "$config_file"
+}
+export -f TIni.Set
+
+function TIni.Sanitize() {
+	local ini_file="$1"
+	local tempfile1
+	local tempfile2
+
+	# Criar arquivos temporários
+	tempfile1=$(mktemp)
+	tempfile2=$(mktemp)
+
+	# Remover linhas em branco do arquivo original
+	sed '/^$/d' "$ini_file" >"$tempfile1"
+
+	# Consolidar seções usando awk e salvar no segundo arquivo temporário
+	awk '
+	BEGIN {
+	    section = ""
+	}
+	{
+	    if ($0 ~ /^\[.*\]$/) {
+	        section = $0
+	    } else if (section != "") {
+	        sections[section] = sections[section] "\n" $0
+	    }
+	}
+	END {
+    for (section in sections) {
+        print section sections[section] "\n"
+    }
+	}
+	' "$tempfile1" >"$tempfile2"
+
+	sed '/^\s*$/d' "$tempfile2" >"$ini_file"
+
+	# colocar uma linha em branco entre as sessoes e remover a primeira linha em branco
+	sed -i -e '/^\[/s/\[/\n&/' -e '1{/^[[:space:]]*$/d}' "$ini_file"
+	sed -i -e '1{/^[[:space:]]*$/d}' "$ini_file"
+
+	# marcar como executável
+	chmod +x "$ini_file"
+
+	# Remover arquivos temporários
+	rm "$tempfile1" "$tempfile2"
+}
+export -f TIni.Sanitize
+
+function TIni.Clean() {
+	local ini_file="$1"
+
+	sed -i -e '/./,$!d' -e 's/[ \t]*=[ \t]*/=/' "$ini_file"
+	#	awk -F'=' '{
+	#		gsub(/^[ \t]+|[ \t]+$/, "", $1);
+	#		gsub(/^[ \t]+|[ \t]+$/, "", $2);
+	#		print $1 "=" $2
+	#	}' "$ini_file" | tee "$ini_file"
+
+}
+export -f TIni.Clean
+
+sh_splitarray() {
+	local str=("$1")
+	local pos="$2"
+	local sep="${3:-'|'}"
+	local array
+
+	[[ $# -eq 3 && "$pos" = "|" && "$sep" =~ ^[0-9]+$ ]] && {
+		sep="$2"
+		pos="$3"
+	}
+	[[ $# -eq 2 && "$pos" = "$sep" ]] && {
+		sep="$pos"
+		pos=1
+	}
+	[[ $# -eq 1 || ! "$pos" =~ ^[0-9]+$ ]] && { pos=1; }
+
+	IFS="$sep" read -r -a array <<<"$str"
+	echo "${array[pos - 1]}"
+}
+
+die() {
+	local msg="$1"
+	#Definindo variáveis de cores
+	msg="$(sed 's/<[^>]*>//g' <<<"$msg")" # Remove as tags HTML
+	echo -e "==>${cyan}error: ${red}${msg}${reset}"
+	exit 1
+}
+export -f die
+
+msg_raw() {
+	local msg="$1"
+	# Remove tags HTML, se existirem
+	#msg="$(sed 's/<[^>]*>//g' <<< "$msg")"
+
+	# Verifica se existe ':' na mensagem
+	if [[ "$msg" == *:* ]]; then
+		# Divide a string antes e depois do primeiro ':'
+		local before_colon="${msg%%:*}:"
+		local after_colon="${msg#*: }"
+		# Aplica as cores
+		msg="${cyan}${before_colon} ${red}${after_colon}${reset}"
+	else
+		# Se não houver ':', aplica apenas a cor padrão
+		msg="${cyan}${msg}${reset}"
+	fi
+	echo -e "$msg"
+}
+export -f msg_raw
+
+msg() {
+	local msg="$1"
+	msg="$(sed 's/<[^>]*>//g' <<<"$msg")" # Remove as tags HTML
+	echo -e "==>${cyan}running: ${yellow}${msg}${reset}"
+}
+export -f msg
+
+msg_ok() {
+	local msg="$1"
+	msg="$(sed 's/<[^>]*>//g' <<<"$msg")" # Remove as tags HTML
+	echo -e "==>${cyan}feito  : ${green}${msg}${reset}"
+}
+export -f msg_ok
+
+msg_run() {
+	local msg="$1"
+	echo -e "==>${cyan}running: ${yellow}${msg}${reset}"
+	eval "$msg"
+}
+export -f msg_run
+
+msg_info() {
+	local msg="$1"
+	local caller_function="${FUNCNAME[1]}" # Nome da função que chamou a função atual
+	local caller_line="${BASH_LINENO[1]}"  # Número da linha que chamou a função atual
+	msg="$(sed 's/<[^>]*>//g' <<<"$msg")"  # Remove as tags HTML
+	#echo -e "${blue}==>${green}[${caller_function}:${caller_line}]=>${yellow}info   : ${cyan}${msg}${reset}"
+	#echo -e "${caller_function}=>${yellow}info   : ${cyan}${msg}${reset}"
+	echo -e "==>${yellow}info   : ${cyan}${msg}${reset}"
+}
+export -f msg_info
+
+msg_warning() {
+	local msg="$1"
+	local caller_function="${FUNCNAME[1]}" # Nome da função que chamou a função atual
+	local caller_line="${BASH_LINENO[1]}"  # Número da linha que chamou a função atual
+	msg="$(sed 's/<[^>]*>//g' <<<"$msg")"  # Remove as tags HTML
+	#echo -e "${caller_function}=>${red}warning: ${orange}${msg}${reset}"
+	echo -e "==>${red}warning: ${orange}${msg}${reset}"
+}
+export -f msg_warning
+
+msg_warn() {
+	local msg="$1"
+	local caller_function="${FUNCNAME[1]}" # Nome da função que chamou a função atual
+	local caller_line="${BASH_LINENO[1]}"  # Número da linha que chamou a função atual
+	msg="$(sed 's/<[^>]*>//g' <<<"$msg")"  # Remove as tags HTML
+	#echo -e "${caller_function}=>${red}warning: ${orange}${msg}${reset}"
+	echo -e "==>${red}warning: ${orange}${msg}${reset}"
+}
+export -f msg_warn
+
+replicate() {
+	local char=${1:-'#'}
+	local nsize=${2:-$(tput cols)}
+	local line
+	printf -v line "%*s" "$nsize" && echo -e "${blue}${line// /$char}${reset}"
+}
+export -f replicate
+
+send_telegram_message() {
+	local message="$1"
+	local parse_mode="$2"
+
+	# Define parse_mode como "MarkdownV2" se não for especificado
+	[[ -z $parse_mode ]] && parse_mode="HTML"
+
+	# Remove as tags HTML e exibe o resultado no terminal
+	echo -e "${red}$(sed 's/<[^>]*>//g' <<<"$message")${reset}"
+	# Envia a mensagem original com HTML para o Telegram
+	curl -s -X POST "https://api.telegram.org/bot${inputs_telegram_token}/sendMessage" \
+		-d chat_id="${inputs_telegram_chat_id}" \
+		-d text="$message" \
+		-d parse_mode="$parse_mode"
+}
+export -f send_telegram_message
+
+set_varcolors() {
+	# does the terminal support true-color?
+	export TERM=${TERM:-xterm}
+	export TERM=${TERM:-xterm-256color}
+	if [[ -n "$(command -v "tput")" ]]; then
+		#tput setaf 127 | cat -v  #capturar saida
+		: "${RED=$(tput bold)$(tput setaf 196)}"
+		: "${GREEN=$(tput bold)$(tput setaf 2)}"
+		: "${YELLOW=$(tput bold)$(tput setaf 3)}"
+		: "${BLUE=$(tput setaf 4)}"
+		: "${PURPLE=$(tput setaf 125)}"
+		: "${CYAN=$(tput setaf 6)}"
+		: "${NC=$(tput sgr0)}"
+		: "${RESET=$(tput sgr0)}"
+		: "${BOLD=$(tput bold)}"
+		: "${black=$(tput bold)$(tput setaf 0)}"
+		: "${reverse=$(tput rev)}"
+		: "${branca=${black}$(tput setab 7)}"
+
+		: "${reset=$(tput sgr0)}"
+		: "${rst=$(tput sgr0)}"
+		: "${bold=$(tput bold)}"
+		: "${underline=$(tput smul)}"
+		: "${nounderline=$(tput rmul)}"
+		: "${reverse=$(tput rev)}"
+
+		: "${black=$(tput bold)$(tput setaf 0)}"
+		: "${red=$(tput bold)$(tput setaf 196)}"
+		: "${green=$(tput bold)$(tput setaf 2)}"
+		: "${yellow=$(tput bold)$(tput setaf 3)}"
+		: "${blue=$(tput setaf 27)}"
+		: "${magenta=$(tput setaf 5)}"
+		: "${cyan=$(tput setaf 6)}"
+		: "${white=$(tput setaf 7)}"
+		: "${gray=$(tput setaf 8)}"
+		: "${light_red=$(tput setaf 9)}"
+		: "${light_green=$(tput setaf 10)}"
+		: "${light_yellow=$(tput setaf 11)}"
+		: "${light_blue=$(tput setaf 12)}"
+		: "${light_magenta=$(tput setaf 13)}"
+		: "${light_cyan=$(tput setaf 14)}"
+		: "${light_white=$(tput setaf 15)}"
+		: "${orange=$(tput setaf 202)}"
+		: "${purple=$(tput setaf 125)}"
+		: "${violet=$(tput setaf 61)}"
+
+		# Definir cores de fundo
+		: "${preto=$(tput setab 0)}"
+		: "${vermelho=$(tput setab 196)}"
+		: "${verde=$(tput setab 2)}"
+		: "${amarelo=$(tput setab 3)}"
+		: "${azul=$(tput setab 20)}"
+		: "${roxo=$(tput setab 5)}"
+		: "${ciano=$(tput setab 6)}"
+		: "${branca="${black}$(tput setab 7)"}"
+		: "${cinza=$(tput setab 8)}"
+		: "${laranja=$(tput setab 202)}"
+		: "${roxa=$(tput setab 125)}"
+		: "${violeta=$(tput setab 61)}"
+
+		: "${COL_NC='\e[0m'}" # No Color
+		: "${COL_LIGHT_GREEN='\e[1;32m'}"
+		: "${COL_LIGHT_RED='\e[1;31m'}"
+		: "${DONE="${COL_LIGHT_GREEN} done!${COL_NC}"}"
+		: "${OVER="\\r\\033[K"}"
+		: "${DOTPREFIX="  ${black}::${reset} "}"
+		: "${TICK="${white}[${green}✓${rst}${white}]${rst}"}"
+		: "${CROSS="${white}[${red}✗${rst}${white}]${rst}"}"
+		: "${INFO="${white}[${gray}i${rst}${white}]${rst}"}"
+	else
+		unset_varcolors
+	fi
+}
+export -f set_varcolors
+
+unset_varcolors() {
+	unset RED GREEN YELLOW BLUE PURPLE CYAN NC RESET BOLD
+	unset reset rst bold underline nounderline reverse
+	unset black red green yellow blue magenta cyan white gray orange purple violet
+	unset light_red light_green light_yellow light_blue light_magenta light_cyan light_white
+	unset preto vermelho verde amarelo azul roxo ciano branca cinza laranja roxa violeta
+	TICK="${white}[${verde}✓${rst}${white}]${rst}"
+	CROSS="${white}[${roxa}✗${rst}${white}]${rst}"
+	INFO="${white}[${cinza}i${rst}${white}]${rst}"
+}
+
 update_version_revision() {
-  local file="$1"
+	local file="$1"
 
-  # Substitui 'version=*' pela data atual no formato YYYYMMDD
-  sed -i "s/^version=.*/version=$(date +%Y%m%d)/" "$file"
-
-  # Substitui 'revision=*' pela hora atual no formato HHMM
-  sed -i "s/^revision=.*/revision=$(date +%H%M)/" "$file"
-
-  echo "As linhas 'version' e 'revision' foram atualizadas em $file."
+	# Substitui 'version=*' pela data atual no formato YYYYMMDD
+	sed -i "s/^version=.*/version=$(date +%Y%m%d)/" "$file"
+	# Substitui 'revision=*' pela hora atual no formato HHMM
+	sed -i "s/^revision=.*/revision=$(date +%H%M)/" "$file"
+	echo "As linhas 'version' e 'revision' foram atualizadas em $file."
 }
 
 get_template_from_repo() {
-  local pkg="$1"
-  local dest="$PWD/srcpkgs/$pkg"
-  local url="https://raw.githubusercontent.com/chililinux/$pkg/main/template"
+	local pkg="$1"
+	local dest="$PWD/srcpkgs/$pkg"
+	local url="https://raw.githubusercontent.com/chililinux/$pkg/main/template"
 
-  # Verifica se o pacote foi especificado
-  if [[ -z "$pkg" ]]; then
-    echo "Erro: Nome do pacote não especificado."
-    return 1
-  fi
+	# Verifica se o pacote foi especificado
+	if [[ -z "$pkg" ]]; then
+		echo "Erro: Nome do pacote não especificado."
+		return 1
+	fi
 
-  # Cria o diretório de destino
-  mkdir -p "$dest"
+	# Cria o diretório de destino
+	mkdir -p "$dest"
 
-  # Baixa o arquivo template no diretório correto
-  if pushd "$dest" > /dev/null; then
-    if curl -f -O "$url"; then
-      echo "Template do pacote '$pkg' baixado com sucesso."
-    else
-      echo "Erro: Não foi possível baixar o template de '$url'."
-      return 1
-    fi
-    popd > /dev/null
-  else
-    echo "Erro: Não foi possível acessar o diretório '$dest'."
-    return 1
-  fi
+	# Baixa o arquivo template no diretório correto
+	if pushd "$dest" >/dev/null; then
+		if curl -f -O "$url"; then
+			echo "Template do pacote '$pkg' baixado com sucesso."
+		else
+			echo "Erro: Não foi possível baixar o template de '$url'."
+			return 1
+		fi
+		popd >/dev/null
+	else
+		echo "Erro: Não foi possível acessar o diretório '$dest'."
+		return 1
+	fi
 }
 
-for i in ${packages[@]}; do
-	if ./xbps-src -j$(nproc) pkg $1; then
-		mv -vf $repomain/$1*.xbps $repo/
-		mv -vf $repomain/main/$1*.xbps $repo/
-		processed=true
-		:
+sh_config() {
+	local_PATH=/github/void-packages.chili/pkgs
+	remote_USER=u537062342
+	remote_PATH=/home/u537062342/domains/chililinux.com/public_html/void/current
+	remote_PORT=65002
+	remote_HOST=154.49.247.66
+	verbose=true
+}
+
+sh_remote_pull() {
+	sh_config
+	mkdir -p $local_PATH
+	msg_raw "  local_PATH: ${local_PATH}"
+	msg_raw " remote_PATH: ${remote_PATH}"
+	msg_raw " remote_USER: ${remote_USER}"
+	msg_raw " remote_HOST: ${remote_HOST}"
+	msg_raw " remote_PORT: ${remote_PORT}"
+
+	pushd "$local_PATH" >/dev/null 2>&- || exit 1
+	msg_info "${cyan}Sincronizando... Puxando do remoto para local ${reset}"
+	msg_raw "    Local : ${local_PATH}"
+	msg_raw "   Remoto : ${remote_PATH}"
+	if $verbose; then
+		echo -n "$black"
+		rsync --itemize-changes --info=skip0 -Craz -e "ssh -p ${remote_PORT}" "${remote_USER}"@"${remote_HOST}":"${remote_PATH}"/ "${local_PATH}"/
+		echo -n "$reset"
+	else
+		rsync --info=skip0 -Craz -e "ssh -p ${remote_PORT}" "${remote_USER}"@"${remote_HOST}":"${remote_PATH}"/ "${local_PATH}"/
 	fi
-done
-if $processed; then
-  ./sign.sh
-fi
+	popd >/dev/null 2>&- || exit 1
+}
+
+sh_remote_push() {
+	sh_config
+
+	pushd "$local_PATH" >/dev/null 2>&- || exit 1
+	msg_info "${cyan}Empurrando para o remoto: ${orange}$organization ${reset}"
+	if $verbose; then
+		echo -n "$black"
+		rsync --itemize-changes --info=skip0 --delete -Craz -e "ssh -p ${remote_PORT}" "${local_PATH}"/ "${remote_USER}"@"${remote_HOST}":"${remote_PATH}"/
+		echo -n "$reset"
+	else
+		rsync --info=skip0 --delete -Craz -e "ssh -p ${remote_PORT}" "${local_PATH}"/ "${remote_USER}"@"${remote_HOST}":"${remote_PATH}"/
+	fi
+	popd >/dev/null 2>&- || exit 1
+	replicate '='
+	msg_ok "Tudo sincronizado!"
+	exit $(($# ? 0 : 1))
+}
+
+sh_create_databases_and_sign() {
+	./sign.sh
+}
+
+sh_update_repo() {
+	sh_remote_pull
+	sh_config
+
+	pushd "$local_PATH" >/dev/null 2>&- || exit 1
+	rm -f -- *.md5 >/dev/null 2>&-
+
+	AllOldPackages=$(find "$PWD" -type f -iname "*.$PKG_EXT" | sort -Vr | awk -F "$FETCH_RE" 'lista[$1]++')
+	for old in ${AllOldPackages[*]}; do
+		msg_info "${red}=>Removendo pacote antigo: [$((++count))] => $(basename "${old}") ${reset}"
+		rm -f "${old}" "${old}".sig2 "${old}".md5 >/dev/null 2>&-
+	done
+	popd >/dev/null 2>&- || exit 1
+	replicate '-'
+	sh_create_databases_and_sign
+  sh_remote_push
+}
+
+sh_build_package() {
+	for i in ${packages[@]}; do
+		if ./xbps-src -j$(nproc) pkg $1; then
+			mv -vf $repomain/$1*.xbps $repo/
+			mv -vf $repomain/main/$1*.xbps $repo/
+			processed=true
+			:
+		fi
+	done
+	if $processed; then
+		./sign.sh
+	fi
+}
+
+set_varcolors
+sh_update_repo
