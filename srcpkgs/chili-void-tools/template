@@ -1,8 +1,8 @@
 # Template file for 'chili-void-tools'
 pkgname=chili-void-tools
 short_desc="Chili tools for Void"
-version=1.0.0
-revision=1
+version=$(date +%Y%m%d)
+revision=$(date +%H%M)
 noarch=true
 #build_style=gnu-makefile
 #depends="gtk+3 gnome-bluetooth python3-setproctitle rfkill xapps"

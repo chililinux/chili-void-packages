@@ -1,22 +1,51 @@
 #!/usr/bin/env bash
 # shellcheck shell=bash disable=SC1091,SC2039,SC2166
 
+# ./rmake $(<PKGBUILD)
+
 ./xbps-src binary-bootstrap
-echo XBPS_ALLOW_RESTRICTED=yes >> etc/conf
+echo XBPS_ALLOW_RESTRICTED=yes >>etc/conf
 
 repomain=$PWD/hostdir/binpkgs
 repo=$PWD/pkgs
 packages="$@"
 processed=false
 
-for i in ${packages[@]}; do
-	if ./xbps-src -j$(nproc) pkg $1; then
-		mv -vf $repomain/$1*.xbps $repo/ &> /dev/null
-		mv -vf $repomain/main/$1*.xbps $repo/ &> /dev/null
-		processed=true
-		:
+update_version_revision() {
+	local file="$1"
+
+	sed -i "s/^version=.*/version=\$(date +%Y%m%d)/" "$file"
+	sed -i "s/^revision=.*/revision=\$(date +%H%M)/" "$file"
+}
+
+build_package() {
+	for i in ${packages[@]}; do
+		echo "Construindo: $i"
+		if [[ -e "$PWD/srcpkgs/$i/template" ]]; then
+			update_version_revision "$PWD/srcpkgs/$i/template"
+			if ./xbps-src -j$(nproc) pkg $i &>/dev/null; then
+				mv -vf $repomain/$i*.xbps $repo/ &>/dev/null
+				mv -vf $repomain/main/$i*.xbps $repo/ &>/dev/null
+				processed=true
+				:
+			fi
+		fi
+	done
+	if $processed; then
+		./sign.sh
 	fi
-done
-if $processed; then
-  ./sign.sh
-fi
+}
+
+get_template_from_repo() {
+  local pkg="$1"
+  local dest="$PWD/srcpkgs/$pkg"
+
+  mkdir -p $dest
+  pushd $dest
+  wget -q https://raw.githubusercontent.com/chililinux/$pkg/main/template
+  popd
+  echo $pkg >> PKGBUILD
+}
+
+#get_template_from_repo "$@"
+build_package "$@"
