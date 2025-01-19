@@ -55,14 +55,12 @@ declare verbose=false
 declare config_file="$HOME/.rmake.conf"
 declare FETCH_RE='-[^-]+[0-9]+[^.]*.xbps$'
 declare PKG_EXT='xbps'
-
-./xbps-src binary-bootstrap
-echo XBPS_ALLOW_RESTRICTED=yes >>etc/conf
-
-repomain=$PWD/hostdir/binpkgs
-repo=$PWD/pkgs
-packages="$@"
-processed=false
+export root_PATH="$PWD"
+export repo="$root_PATH/pkgs"
+export repomain="$root_PATH/hostdir/binpkgs"
+export srcpkgs="$root_PATH/srcpkgs"
+declare processed=false
+declare packages="$@"
 
 errorbeep() {
 	printf '\a' # beep
@@ -488,49 +486,50 @@ unset_varcolors() {
 
 sh_version() {
 	cat <<-EOF
-${BOLD}${CYAN}${0##*/} v${VERSION}${RESET}
-${APPDESC}
-${BOLD}${black}Copyright (C) 2024-2024 ${reset}ChiliLinux Team${black}
+		${BOLD}${CYAN}${0##*/} v${VERSION}${RESET}
+		${APPDESC}
+		${BOLD}${black}Copyright (C) 2024-2024 ${reset}ChiliLinux Team${black}
 
-  Este é um software livre: você é livre para alterá-lo e redistribuí-lo.
-  O $APP é disponibilizado para você sob a ${yellow}Licença MIT${black}, e
-  inclui software de código aberto sob uma variedade de outras licenças.
-  Você pode ler instruções sobre como baixar e criar para você mesmo
-  o código fonte específico usado para criar esta cópia.
-  ${red}Este programa vem com absolutamente NENHUMA garantia.
-  ${reset}
-EOF
+		  Este é um software livre: você é livre para alterá-lo e redistribuí-lo.
+		  O $APP é disponibilizado para você sob a ${yellow}Licença MIT${black}, e
+		  inclui software de código aberto sob uma variedade de outras licenças.
+		  Você pode ler instruções sobre como baixar e criar para você mesmo
+		  o código fonte específico usado para criar esta cópia.
+		  ${red}Este programa vem com absolutamente NENHUMA garantia.
+		  ${reset}
+	EOF
 }
 
 sh_usage() {
 	cat <<-EOF
-${BOLD}${CYAN}${0##*/} v${VERSION}${RESET}
-${APPDESC}
-${red}Uso: ${reset}$APP ${cyan}[opções]${reset}
+		${BOLD}${CYAN}${0##*/} v${VERSION}${RESET}
+		${APPDESC}
+		${red}Uso: ${reset}$APP ${cyan}[opções]${reset}
 
-  ${cyan}Opções:${reset}
-    -c|--config                    ${cyan} # configurar ambiente ${reset}
-    -s|--synchronize               ${cyan} # sincronizar local com remoto (puxar/empurrar) ${reset}
-    -S|--sign                      ${cyan} # assinar pacote faltantes ${reset}
-    -n|--nocolor                   ${cyan} # Suprime a impressão de cores ${reset}
-    -v|--verbose                   ${cyan} # ativa modo verboso ${reset}
-    -V|--version                   ${cyan} # Imprime a versão do aplicativo ${reset}
-    -h|--help                      ${cyan} # Mostra este Help ${reset}
+		  ${cyan}Opções:${reset}
+		    -s|--synchronize               ${cyan} # sincronizar local com remoto (puxar/empurrar) ${reset}
+		    -S|--sign                      ${cyan} # assinar pacote faltantes ${reset}
+		    -n|--nocolor                   ${cyan} # Suprime a impressão de cores ${reset}
+		    -c|--change <package>          ${cyan} # Alterar version e revision do template ${reset}
+		    -t|--template <package>        ${cyan} # Baixar template do repositorio ${reset}
+		    -v|--verbose                   ${cyan} # ativa modo verboso ${reset}
+		    -V|--version                   ${cyan} # Imprime a versão do aplicativo ${reset}
+		    -h|--help                      ${cyan} # Mostra este Help ${reset}
 
-  ${red}ex: ${cyan}${APP} -s ${reset}
-      ${cyan}${APP} --sign   ${reset}
-EOF
+		  ${red}ex: ${cyan}${APP} -s ${reset}
+		      ${cyan}${APP} --sign   ${reset}
+	EOF
 	exit 0
 }
 
 update_version_revision() {
-	local file="$1"
+	local file="$srcpkgs/$1/template"
 
-	# Substitui 'version=*' pela data atual no formato YYYYMMDD
+	msg_info '#Substitui 'version=*' pela data atual no formato YYYYMMDD'
 	sed -i "s/^version=.*/version=$(date +%Y%m%d)/" "$file"
-	# Substitui 'revision=*' pela hora atual no formato HHMM
+	msg_info '#Substitui 'revision=*' pela hora atual no formato HHMM'
 	sed -i "s/^revision=.*/revision=$(date +%H%M)/" "$file"
-	echo "As linhas 'version' e 'revision' foram atualizadas em $file."
+	msg_info "As linhas 'version' e 'revision' foram atualizadas em $file"
 }
 
 get_template_from_repo() {
@@ -612,8 +611,16 @@ sh_remote_push() {
 	exit $(($# ? 0 : 1))
 }
 
-sh_create_databases_and_sign() {
-	./sign.sh
+sh_sign_package() {
+  local pkg_to_sign="$1"
+  msg_run "xbps-rindex -v --privkey private.pem --sign-pkg "${pkg_to_sign}" 1>/dev/null"
+}
+
+sh_create_databases() {
+  #cria x86_repodata
+  msg_run 'xbps-rindex -v --add --force $repo/*.xbps 1>/dev/null'
+  # Once the key is generated, the public part of the private key has to be added to the repository metadata. This step is required only once.
+  msg_run 'xbps-rindex -v --privkey private.pem --sign --signedby "$packager" "$repo" 1>/dev/null'
 }
 
 sh_update_repo() {
@@ -630,8 +637,71 @@ sh_update_repo() {
 	done
 	popd >/dev/null 2>&- || exit 1
 	replicate '-'
-	sh_create_databases_and_sign
+  search_for_sign_package
+	sh_create_databases
 	sh_remote_push
+}
+
+search_for_sign_package() {
+	local AllPackages
+	local original_dir
+	local -A processed_branches=() # Associative array para rastrear branches processados
+	local total_processed=0        # Contador de pacotes processados
+	local total_signed=0           # Contador de pacotes assinados
+	local total_unsigned=0         # Contador de pacotes sem assinatura
+	local total_already_signed=0   # Contador de pacotes já assinados
+
+	# Salva o diretório original para garantir retorno
+	original_dir=$(pwd)
+  sh_config
+
+	# Verifica se o diretório existe
+	if [[ ! -d "$local_PATH" ]]; then
+		msg_warn "Diretório não encontrado: $local_PATH"
+		continue
+	fi
+
+	pushd "$local_PATH" >/dev/null || {
+		msg_warn "Falha ao acessar o diretório: $local_PATH"
+		return 1
+	}
+
+	# Gera um array de pacotes encontrados
+	AllPackages=()
+	readarray -d '' AllPackages < <(find . -type f -iname "*.$PKG_EXT" -print0)
+
+	# Itera sobre os pacotes
+	for pkg in "${AllPackages[@]}"; do
+		((total_processed++)) # Incrementa o contador de pacotes processados
+		if [[ ! -e "$pkg.sig2" ]]; then
+			((total_unsigned++)) # Incrementa o contador de pacotes sem assinatura
+      msg_info "Assinando pacote: $pkg"
+      sh_sign_package "$pkg"
+			((total_signed++)) # Incrementa o contador de pacotes assinados
+		else
+			((total_already_signed++)) # Incrementa o contador de pacotes já assinados
+		fi
+	done
+
+	popd >/dev/null || {
+		msg_warn "Falha ao retornar ao diretório original."
+		return 1
+	}
+
+	# Garante retorno ao diretório original em caso de falhas
+	cd "$original_dir" || {
+		msg_warn "Não foi possível retornar ao diretório original."
+		return 1
+	}
+
+	# Exibe o resumo final
+	replicate '-'
+	msg_info "Resumo Final:"
+	msg_raw "Pacotes processados    : $total_processed"
+	msg_raw "Pacotes já assinados   : $total_already_signed"
+	msg_raw "Pacotes sem assinatura : $total_unsigned"
+	msg_raw "Pacotes agora assinados: $total_signed"
+	replicate '-'
 }
 
 sh_build_package() {
@@ -644,15 +714,17 @@ sh_build_package() {
 		fi
 	done
 	if $processed; then
-		./sign.sh
+    . $root_PATH/sign.sh
 	fi
 }
 
+./xbps-src binary-bootstrap
+echo XBPS_ALLOW_RESTRICTED=yes >>etc/conf
 set_varcolors
+
 if test $# -lt 1; then
 	sh_usage
 fi
-#sh_update_repo
 
 while [[ $# -gt 0 ]]; do
 	arg="$1"
@@ -679,24 +751,28 @@ while [[ $# -gt 0 ]]; do
 	-h | --help)
 		sh_usage
 		;;
-	-o | --org | --organization)
-		next_arg="${2:-}"
-		organization="$next_arg"
-		shift 2
-		;;
 	-S | --sign)
-    sh_create_databases_and_sign
+		next_arg="${2:-}"
+    search_for_sign_package "$next_arg"
+		shift
+		exit 0
+		;;
+	-t | --template)
+		next_arg="${2:-}"
+    get_template_from_repo "$next_arg"
 		shift
 		exit 0
 		;;
 	-s | --synchronize)
-    sh_update_repo
-    shift
-    exit 0
+		sh_update_repo
+		shift
+		exit 0
 		;;
-	-c | --config)
-		sh_setup
-		break
+	-c | --change)
+		next_arg="${2:-}"
+    update_version_revision "$next_arg"
+		shift
+		exit 0
 		;;
 	*)
 		die "Opção $1 inválida! (Use -h para ajuda)"

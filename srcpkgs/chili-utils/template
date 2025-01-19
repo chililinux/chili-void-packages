@@ -31,8 +31,8 @@
 ##############################################################################
 # Template file for 'chili-utils'
 pkgname=chili-utils
-version=$(date +%Y%m%d)
-revision=$(date +%H%M)
+version=20250119
+revision=1202
 noarch=true
 #build_style=gnu-makefile
 #depends="gtk+3 gnome-bluetooth python3-setproctitle rfkill xapps"
