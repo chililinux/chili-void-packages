@@ -517,10 +517,8 @@ ${red}Uso: ${reset}$APP ${cyan}[opções]${reset}
     -V|--version                   ${cyan} # Imprime a versão do aplicativo ${reset}
     -h|--help                      ${cyan} # Mostra este Help ${reset}
 
-  ${red}ex: ${cyan}${APP} -o chili -s testing      ${reset}
-      ${cyan}${APP} -o chili -s all          ${reset}
-      ${cyan}${APP} -o chili --sign testing  ${reset}
-      ${cyan}${APP} -o chili --sign all      ${reset}
+  ${red}ex: ${cyan}${APP} -s ${reset}
+      ${cyan}${APP} --sign   ${reset}
 EOF
 	exit 0
 }
