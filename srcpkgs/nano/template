@@ -1,7 +1,7 @@
 # Template file for 'nano'
 pkgname=nano
-version=8.2
-revision=1
+version=$(date +%Y%m%d)
+revision=$(date +%H%M)
 build_style=gnu-configure
 configure_args="--enable-utf8"
 hostmakedepends="pkg-config groff"
