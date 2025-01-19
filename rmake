@@ -1,1 +1,18 @@
-makevoidpkg
+#!/usr/bin/env bash
+# shellcheck shell=bash disable=SC1091,SC2039,SC2166
+
+./xbps-src binary-bootstrap
+echo XBPS_ALLOW_RESTRICTED=yes >> etc/conf
+
+repomain=$PWD/hostdir/binpkgs
+repo=$PWD/pkgs
+packages="$@"
+
+for i in ${packages[@]}; do
+	if ./xbps-src -j$(nproc) pkg $1; then
+		mv -vf $repomain/$1*.xbps $repo/
+		mv -vf $repomain/main/$1*.xbps $repo/
+		./sign.sh
+		:
+	fi
+done
