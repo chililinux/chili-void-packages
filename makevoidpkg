@@ -5,7 +5,7 @@
 #  rmake/makepkgvoid
 #  Created: 2024/08/21 - 19:07
 #  Altered: dom 27 out 2024 09:19:14 -04
-#  Updated: dom 19 jan 2025 08:56:43 -04
+#  Updated: seg 20 jan 2025 07:43:49 -04
 #
 #  Copyright (c) 2024-2025, Vilmar Catafesta <vcatafesta@gmail.com>
 #  All rights reserved.
@@ -58,6 +58,7 @@ declare PKG_EXT='xbps'
 export root_PATH="$PWD"
 export repo="$root_PATH/pkgs"
 export repomain="$root_PATH/hostdir/binpkgs"
+export repononfree="$root_PATH/hostdir/binpkgs/main/nonfree"
 export srcpkgs="$root_PATH/srcpkgs"
 declare processed=false
 
@@ -714,6 +715,7 @@ sh_build_package() {
 		if ./xbps-src -j$(nproc) pkg $1; then
 			mv -vf $repomain/$1*.xbps $repo/
 			mv -vf $repomain/main/$1*.xbps $repo/
+			mv -vf $repononfree/$1*.xbps $repo/
 			processed=true
 			:
 		fi
